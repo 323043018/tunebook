@@ -75,7 +75,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .pad .fn:active { background: rgba(255, 255, 255, .88); }
 .pad .go { background: var(--accent); color: #fff; font-size: 20px; font-weight: 500; }
 .pad .go:active { background: #3d000c; }
-.search.padopen .results, .search.nameopen .results { left: calc(var(--padw) + 16px); }
+.search.padopen .results, .search.nameopen .search.padopen .results, .search.nameopen .results { left: calc(var(--padw) + 16px); }
 #qn { caret-color: transparent; }
 .namebox { flex: 1; min-width: 0; position: relative; }
 /* Search boxes and Tune list button: white, thin grey borders, grey icon tiles (like a clean card UI) */
@@ -101,20 +101,23 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   color: var(--accent); font-variant-numeric: tabular-nums; text-align: center; }
 
 /* Results dropdown */
-.results { position: absolute; left: 0; right: 0; top: 100%; margin-top: 12px; z-index: 5;
-  background: #fff; border: 1px solid #e3e3e3; border-radius: 8px; font-family: var(--key-font); color: #1f1f1f;
-  max-height: min(70vh, 640px); overflow-y: auto; box-shadow: 0 8px 28px rgba(0,0,0,.10); }
-.row { display: flex; align-items: center; gap: 14px; padding: 6px 8px 6px 16px; border-top: 1px solid #ececec; }
-.row:first-child { border-top: 0; }
-.row.sel { background: #f6f6f6; }
-.row .open { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 16px; text-align: left;
-  border: 0; background: transparent; padding: 12px 0; font-family: inherit; font-size: 24px; }
+.results { position: absolute; left: 0; right: 0; top: 100%; margin-top: 12px; z-index: 5; padding: 6px;
+  background: #fff; border: .5px solid rgba(0, 0, 0, .08); border-radius: 24px; box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
+  font-family: var(--key-font); color: #000; max-height: min(70vh, 640px); overflow-y: auto; }
+.row { display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 12px; border-radius: 16px; position: relative; }
+.row + .row::before { content: ""; position: absolute; top: 0; left: 16px; right: 16px; border-top: .5px solid #d1d1d6; }
+.row.sel { background: #f2f2f7; }
+.row.sel::before, .row.sel + .row::before { display: none; }
+.row .open { flex: 1; min-width: 0; display: grid; grid-template-columns: auto 1fr; align-items: baseline; column-gap: 12px; text-align: left;
+  border: 0; background: transparent; padding: 12px 0; font-family: inherit; font-size: 20px; line-height: 1.3; color: #000; }
+.row .num { font-family: var(--key-font); font-size: 16px; font-weight: 600; color: var(--accent); background: var(--hit); border-radius: 999px;
+  padding: 3px 12px; min-width: 2.2em; text-align: center; font-variant-numeric: tabular-nums; }
 .num { font-family: var(--num-font); font-weight: 700; font-variant-numeric: tabular-nums; min-width: 2.4em; color: var(--accent); }
 .name { min-width: 0; overflow-wrap: anywhere; }
-.add { flex: none; height: 52px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--accent);
-  background: transparent; color: var(--accent); font-weight: 700; font-size: 19px; white-space: nowrap; }
-.add.on { background: var(--accent); color: var(--accent-fg); }
-.empty { padding: 20px 18px; color: var(--muted); }
+.add { flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0;
+  border: 0; border-radius: 22px; background: rgba(0, 0, 0, .06); color: #3c3c43; }
+.add.on { background: var(--accent); color: #fff; }
+.empty { padding: 16px 14px; color: #8e8e93; font-family: var(--key-font); font-size: 18px; }
 
 /* Tune view */
 .main { position: absolute; inset: 0; }
@@ -132,8 +135,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .box img { display: block; width: 100%; height: 100%; max-width: none; filter: var(--music-filter); }
 .tbar { position: relative; height: 60px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 4px;
   background: #fff; color: #000; border-radius: 8px 8px 0 0; font-family: var(--key-font); }
-.ttl { flex: 1; min-width: 0; font-size: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ttl b { font-family: var(--key-font); font-size: 16px; font-weight: 600; color: var(--accent); background: var(--hit); border-radius: 999px; padding: 4px 12px; margin-right: 10px; font-variant-numeric: tabular-nums; }
+.ttl { flex: 1; min-width: 0; display: flex; align-items: center; font-size: 19px; white-space: nowrap; }
+.ttl span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ttl b { flex: none; line-height: 1.3; font-family: var(--key-font); font-size: 16px; font-weight: 600; color: var(--accent); background: var(--hit); border-radius: 999px; padding: 4px 12px; margin-right: 10px; font-variant-numeric: tabular-nums; }
 .grip { flex: none; width: 52px; height: 52px; border: 0; background: transparent; color: #8e8e93; font-size: 30px; touch-action: none; cursor: grab; }
 .tb { flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px;
   background: rgba(0,0,0,.06); color: #3c3c43; border: 0; box-shadow: none; -webkit-tap-highlight-color: transparent; }
@@ -155,7 +159,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .homemsg { max-width: 34em; color: var(--home-fg); font-size: 20px; line-height: 1.5; }
 .homemsg:empty { display: none; }
 .homemsg strong, .homemsg span { color: #fff !important; }
-.homemsg .add.on { background: var(--home-fg); color: var(--accent); border-color: var(--home-fg); }
+.homemsg .add.on { width: auto; height: auto;  background: var(--home-fg); color: var(--accent); border-color: var(--home-fg); }
 .part { position: absolute; right: 52px; bottom: 32px; line-height: 1; font-size: 16px; color: var(--home-fg); letter-spacing: .02em; }
 .hint { margin: auto; padding: 24px 16px; max-width: 34em; text-align: center; color: var(--muted); font-size: 22px; line-height: 1.5; }
 .hint strong { color: var(--fg); }
@@ -373,7 +377,7 @@ function renderResults() {
     results.innerHTML = hits.map((t, i) =>
       '<div class="row' + (i === sel ? ' sel' : '') + '" role="option">' +
       '<button class="open" type="button" data-n="' + t.n + '"><span class="num">' + t.n + '</span><span class="name">' + esc(t.name) + '</span></button>' +
-      '<button class="add' + (inList(t.n) ? ' on' : '') + '" type="button" data-add="' + t.n + '">' + (inList(t.n) ? '✓ In list' : '+ Add') + '</button></div>').join('');
+      '<button class="add' + (inList(t.n) ? ' on' : '') + '" type="button" data-add="' + t.n + '" aria-label="' + (inList(t.n) ? 'In tune list' : 'Add to tune list') + '">' + (inList(t.n) ? '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>') + '</button></div>').join('');
   }
   results.hidden = false;
 }
@@ -427,7 +431,7 @@ function slot(n) {
   if (!s) {
     const el = document.createElement('section'); el.className = 'tune'; el.dataset.n = n;
     el.innerHTML = '<div class="tbar"><button class="grip" type="button" aria-label="Drag to reorder">≡</button>' +
-      '<div class="ttl"><b>' + n + '</b>' + esc(byNo.get(n)) + '</div>' +
+      '<div class="ttl"><b>' + n + '</b><span>' + esc(byNo.get(n)) + '</span></div>' +
       '<button class="tb" type="button" data-mv="-1" aria-label="Move up"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15l7-7 7 7"/></svg></button>' +
       '<button class="tb" type="button" data-mv="1" aria-label="Move down"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg></button>' +
       '<button class="tb x" type="button" data-rm aria-label="Remove from list"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
