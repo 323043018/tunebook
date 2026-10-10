@@ -125,11 +125,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .ttl b { font-family: var(--num-font); color: #fff; margin-right: 10px; font-variant-numeric: tabular-nums; }
 .grip { flex: none; width: 52px; height: 52px; border: 0; background: transparent; color: var(--home-fg); font-size: 30px; touch-action: none; cursor: grab; }
 .tb { flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px;
-  background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.08)); color: #fff;
-  border: .5px solid rgba(255,255,255,.35); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 1px 3px rgba(0,0,0,.2);
-  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); -webkit-tap-highlight-color: transparent; }
+  background: rgba(255,255,255,.14); color: #fff; border: 0; box-shadow: none; -webkit-tap-highlight-color: transparent; }
 .tb svg { width: 22px; height: 22px; }
-.tb:active { background: rgba(255,255,255,.3); }
+.tb:active { background: rgba(255,255,255,.28); }
 .tb:disabled { opacity: .35; }
 .tb.confirm { width: auto; padding: 0 18px; background: #fff; color: var(--accent); border-color: #fff;
   font-family: var(--key-font); font-size: 17px; font-weight: 500; }
