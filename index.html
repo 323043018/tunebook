@@ -49,6 +49,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .bar { display: flex; gap: 10px; align-items: center; padding: 10px 16px;
   background: var(--surface); border-bottom: 1px solid var(--line); }
 .search { flex: 1; min-width: 0; position: relative; display: flex; gap: 10px; }
+.pad { position: absolute; left: 0; top: 100%; margin-top: 8px; z-index: 6; display: grid; grid-template-columns: repeat(3, 84px); gap: 8px;
+  padding: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+.pad button { height: 76px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+  font-family: var(--num-font); font-weight: 700; font-size: 32px; font-variant-numeric: tabular-nums; }
+.pad button:active { background: var(--hit); }
+.pad .go { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-family: var(--font); font-size: 24px; }
+.search.padopen .results { left: 290px; }
+#qn { caret-color: transparent; }
 .namebox { flex: 1; min-width: 0; position: relative; }
 #q, #qn { width: 100%; box-sizing: border-box; font: inherit; font-size: 30px; font-weight: 700;
   padding: 12px 56px 12px 18px; border: 1px solid var(--line); border-radius: 14px;
@@ -135,6 +143,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   body { font-size: 18px; }
   #q, #qn { font-size: 24px; }
   #qn { width: 110px; }
+  .search.padopen .results { left: 0; top: calc(100% + 352px); }
   .listbtn { height: 56px; padding: 0 12px; font-size: 18px; }
   .listbtn .lbl { display: none; }
   .row .open { font-size: 20px; }
@@ -148,8 +157,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 <div class="app">
   <div class="bar">
     <div class="search">
-      <input id="qn" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="go" autocomplete="off"
+      <input id="qn" type="text" inputmode="none" readonly autocomplete="off"
         maxlength="3" placeholder="Number" aria-label="Tune number">
+      <div id="pad" class="pad" hidden>
+        <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
+        <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+        <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
+        <button type="button" data-k="back" aria-label="Delete">⌫</button><button type="button" data-k="0">0</button><button type="button" data-k="go" class="go">Go</button>
+      </div>
       <div class="namebox">
       <input id="q" type="text" inputmode="search" enterkeyhint="go" autocomplete="off" autocorrect="off"
         autocapitalize="off" spellcheck="false" placeholder="Tune name" aria-label="Tune name">
@@ -293,9 +308,22 @@ function renderResults() {
   }
   results.hidden = false;
 }
-// Two boxes: the number box opens the number keys, the name box the full keyboard.
+// Two boxes: the number box opens the app's own number pad (iPad has no number-only keyboard), the name box the full keyboard.
 let active = qn;
-qn.addEventListener('input', () => { qn.value = qn.value.replace(/\D/g, ''); q.value = ''; active = qn; renderResults(); });
+const pad = $('pad'), searchBox = document.querySelector('.search');
+function openPad() { pad.hidden = false; searchBox.classList.add('padopen'); }
+function closePad() { pad.hidden = true; searchBox.classList.remove('padopen'); }
+function key(k) {
+  if (k === 'go') { if (qn.value && hits[sel]) show(hits[sel].n, null); else closePad(); return; }
+  if (k === 'back') qn.value = qn.value.slice(0, -1);
+  else if (qn.value.length < 3) qn.value += k;
+  q.value = ''; active = qn; renderResults();
+}
+pad.addEventListener('click', e => { const t = e.target.closest('[data-k]'); if (t) key(t.dataset.k); });
+qn.addEventListener('click', openPad);
+qn.addEventListener('focus', openPad);
+q.addEventListener('focus', closePad);
+qn.addEventListener('keydown', e => { if (/^\d$/.test(e.key)) { e.preventDefault(); key(e.key); } else if (e.key === 'Backspace') { e.preventDefault(); key('back'); } });
 q.addEventListener('input', () => { qn.value = ''; active = q; renderResults(); });
 for (const el of [qn, q]) {
 el.addEventListener('focus', () => { active = el; el.select(); renderResults(); });
@@ -303,7 +331,7 @@ el.addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); if (hits[sel]) show(hits[sel].n, null); }
   else if (e.key === 'ArrowDown' && hits.length) { e.preventDefault(); sel = Math.min(sel + 1, hits.length - 1); mark(); }
   else if (e.key === 'ArrowUp' && hits.length) { e.preventDefault(); sel = Math.max(sel - 1, 0); mark(); }
-  else if (e.key === 'Escape') { el.blur(); results.hidden = true; }
+  else if (e.key === 'Escape') { el.blur(); results.hidden = true; closePad(); }
 });
 }
 function mark() { [...results.children].forEach((r, i) => r.classList.toggle('sel', i === sel)); }
@@ -314,13 +342,13 @@ results.addEventListener('click', e => {
   if (o) show(+o.dataset.n, null);
 });
 $('clear').addEventListener('click', () => { q.value = ''; active = q; renderResults(); q.focus(); });
-document.addEventListener('pointerdown', e => { if (!e.target.closest('.search')) results.hidden = true; });
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.search')) { results.hidden = true; closePad(); } });
 
 /* ---------- showing a tune ---------- */
 let cur = null, fromList = false, token = 0;
 async function show(n, listMode) {
   cur = n; fromList = listMode === true;
-  q.value = ''; qn.value = ''; $('clear').hidden = true; results.hidden = true; q.blur(); qn.blur();
+  q.value = ''; qn.value = ''; $('clear').hidden = true; results.hidden = true; closePad(); q.blur(); qn.blur();
   stage.hidden = false; $('tunebar').hidden = false; $('upnext').hidden = true;
   $('title').innerHTML = '<b>' + n + '</b>' + esc(byNo.get(n));
   refreshCur();
