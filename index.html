@@ -160,9 +160,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .hint { margin: auto; padding: 24px 16px; max-width: 34em; text-align: center; color: var(--muted); font-size: 22px; line-height: 1.5; }
 .hint strong { color: var(--fg); }
 
-/* Tune list panel: Settings-style grouped list on light grey, page behind blurred */
-.sheet { position: fixed; inset: 0; z-index: 20; display: flex; justify-content: flex-end; align-items: flex-start; background: rgba(0,0,0,.18);
-  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); animation: fadein .25s ease; }
+/* Tune list panel: floating glass panel with a Settings-style grouped list; tap outside to close */
+.sheet { position: fixed; inset: 0; z-index: 20; display: flex; justify-content: flex-end; align-items: flex-start; background: transparent; }
 .panel { width: min(480px, calc(100% - 24px)); max-height: calc(100% - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   margin: calc(12px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px)) 12px 12px; box-sizing: border-box;
   border-radius: 32px; background: rgba(242, 242, 247, .82); -webkit-backdrop-filter: blur(30px) saturate(1.8); backdrop-filter: blur(30px) saturate(1.8);
@@ -413,7 +412,8 @@ results.addEventListener('click', e => {
   if (o) show(+o.dataset.n);
 });
 $('clear').addEventListener('click', () => { q.value = ''; active = q; renderResults(); q.focus(); });
-document.addEventListener('pointerdown', e => { if (!e.target.closest('.search')) { results.hidden = true; closePad(); } });
+// Tapping anywhere outside the search closes it, and on iPad also puts the keyboard away.
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.search')) { results.hidden = true; closePad(); if (document.activeElement === q || document.activeElement === qn) document.activeElement.blur(); } });
 
 /* ---------- the tune list: every tune in the list, one after another, in one scrolling page ---------- */
 const stack = $('stack');
