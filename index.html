@@ -128,7 +128,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 @media (prefers-reduced-motion: reduce) { .veil { transition: none; } }
 .stage { position: absolute; inset: 0; display: block;
   background: transparent; overflow: auto; -webkit-overflow-scrolling: touch; }
-.stack { display: flex; flex-direction: column; gap: 20px; padding: var(--barspace) 0 32px; }
+.stack { display: flex; flex-direction: column; gap: 20px; padding: calc(var(--barspace) + 8px) 0 32px; }
 /* Each tune is a white card; its header stays pinned at the top while you scroll through it. */
 .tune { flex: none; background: var(--paper); border-radius: 0; box-shadow: 0 4px 18px rgba(0, 0, 0, .25); }
 .box { margin: 0 auto; overflow: hidden; border-radius: 0; }
