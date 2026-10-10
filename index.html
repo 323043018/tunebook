@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Band Tune Book</title>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-title" content="Tune Book">
+<style>
+@font-face { font-family: 'Libre Franklin'; font-weight: 400; font-display: swap; src: url('fonts/libre-franklin-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Libre Franklin'; font-weight: 600; font-display: swap; src: url('fonts/libre-franklin-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Libre Franklin'; font-weight: 700; font-display: swap; src: url('fonts/libre-franklin-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Atkinson Hyperlegible'; font-weight: 700; font-display: swap; src: url('fonts/atkinson-hyperlegible-latin-700-normal.woff2') format('woff2'); }
+
+/* Layout: one screen. A fixed search bar on top, the music fills everything below it. */
+:root {
+  color-scheme: light;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --fg: #14181f;
+  --muted: #5b6472;
+  --line: #d5d9e0;
+  --accent: #610014;
+  --accent-fg: #ffffff;
+  --hit: #f6e6e8;
+  --danger: #610014;
+  --home-fg: #d9d9d9;
+  --paper: #ffffff;
+  --music-filter: none;
+  --font: "Libre Franklin", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --num-font: "Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
+}
+
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 20px;
+  margin: 0; overflow: hidden; -webkit-text-size-adjust: 100%; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { display: flex; flex-direction: column; height: 100%; }
+
+/* Search bar */
+.bar { display: flex; gap: 10px; align-items: center; padding: 10px 16px;
+  background: var(--surface); border-bottom: 1px solid var(--line); }
+.search { flex: 1; min-width: 0; position: relative; }
+#q { width: 100%; box-sizing: border-box; font: inherit; font-size: 30px; font-weight: 700;
+  padding: 12px 56px 12px 18px; border: 1px solid var(--line); border-radius: 14px;
+  background: var(--bg); color: var(--fg); -webkit-appearance: none; appearance: none; }
+#q::placeholder { color: var(--muted); font-weight: 400; }
+#q:focus { border-color: var(--accent); outline: none; }
+#clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent;
+  font-size: 28px; color: var(--muted); }
+.listbtn { flex: none; display: flex; align-items: center; gap: 8px; height: 62px; padding: 0 18px;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--surface); font-weight: 700; font-size: 22px; }
+.count { font-family: var(--num-font); min-width: 1.6em; padding: 2px 8px; border-radius: 999px; background: var(--accent);
+  color: var(--accent-fg); font-variant-numeric: tabular-nums; text-align: center; }
+
+/* Results dropdown */
+.results { position: absolute; left: 0; right: 0; top: 100%; margin-top: 8px; z-index: 5;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  max-height: min(70vh, 640px); overflow-y: auto; box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+.row { display: flex; align-items: center; gap: 14px; padding: 6px 8px 6px 16px; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; }
+.row.sel { background: var(--hit); }
+.row .open { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 16px; text-align: left;
+  border: 0; background: transparent; padding: 12px 0; font-size: 24px; }
+.num { font-family: var(--num-font); font-weight: 700; font-variant-numeric: tabular-nums; min-width: 2.4em; color: var(--accent); }
+.name { min-width: 0; overflow-wrap: anywhere; }
+.add { flex: none; height: 52px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--accent);
+  background: transparent; color: var(--accent); font-weight: 700; font-size: 19px; white-space: nowrap; }
+.add.on { background: var(--accent); color: var(--accent-fg); }
+.empty { padding: 20px 18px; color: var(--muted); }
+
+/* Tune view */
+.tunebar { display: flex; align-items: center; gap: 12px; padding: 6px 16px; min-height: 52px; }
+.tunebar .title { flex: 1; min-width: 0; font-size: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tunebar .title b { font-family: var(--num-font); color: var(--accent); margin-right: 10px; font-variant-numeric: tabular-nums; }
+.nav { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; color: var(--muted); }
+.nav button { height: 48px; min-width: 64px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface); font-weight: 700; font-size: 20px; }
+.nav button:disabled { opacity: .35; }
+.stage { flex: 1; min-height: 0; display: flex; align-items: flex-start; justify-content: center;
+  background: var(--paper); overflow: auto; -webkit-overflow-scrolling: touch; }
+.stage img { display: block; width: 100%; height: auto; max-width: none; filter: var(--music-filter); }
+.stage.fit img { width: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
+.home { flex: 1; align-self: stretch; position: relative; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 28px; padding: 24px 16px 56px; background: var(--accent); color: var(--home-fg); text-align: center; }
+.home-title { margin: 0; font-weight: 700; font-size: clamp(20px, 2.8vw, 30px); line-height: 1.25; letter-spacing: .04em; text-wrap: balance; }
+.stage .crest { width: auto; height: min(30vh, 260px); max-width: 60%; object-fit: contain; filter: invert(1) brightness(.85); }
+.homemsg { max-width: 34em; color: var(--home-fg); font-size: 20px; line-height: 1.5; }
+.homemsg:empty { display: none; }
+.homemsg strong, .homemsg span { color: #fff !important; }
+.homemsg .add.on { background: var(--home-fg); color: var(--accent); border-color: var(--home-fg); }
+.part { position: absolute; right: 20px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); font-size: 16px; color: var(--home-fg); letter-spacing: .02em; }
+.hint { margin: auto; padding: 24px 16px; max-width: 34em; text-align: center; color: var(--muted); font-size: 22px; line-height: 1.5; }
+.hint strong { color: var(--fg); }
+
+/* Song list sheet */
+.sheet { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.35); display: flex; justify-content: flex-end; }
+.panel { width: min(520px, 100%); height: 100%; box-sizing: border-box; background: var(--surface);
+  display: flex; flex-direction: column; padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px calc(env(safe-area-inset-bottom, 0px) + 12px); gap: 10px; }
+.panel header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.panel h2 { margin: 0; font-size: 28px; }
+.close { height: 52px; padding: 0 20px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-weight: 700; }
+.items { flex: 1; overflow-y: auto; margin: 0; padding: 0; list-style: none; }
+.items li { display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--line); }
+.items li .open { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 14px; border: 0; background: transparent;
+  text-align: left; padding: 16px 4px; font-size: 22px; }
+.items li.cur { background: var(--hit); }
+.mini { flex: none; width: 48px; height: 48px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); font-size: 20px; }
+.mini.x { color: var(--danger); }
+.mini:disabled { opacity: .3; }
+.foot { display: flex; gap: 10px; flex-wrap: wrap; }
+.foot button { height: 52px; padding: 0 18px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-weight: 700; }
+.foot .danger { color: var(--danger); }
+.foot .confirm { background: var(--danger); color: var(--surface); border-color: var(--danger); }
+.loading { color: var(--muted); padding: 24px; font-size: 22px; margin: auto; }
+
+@media (max-width: 600px) {
+  body { font-size: 18px; }
+  #q { font-size: 24px; }
+  .listbtn { height: 56px; padding: 0 12px; font-size: 18px; }
+  .listbtn .lbl { display: none; }
+  .row .open { font-size: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+.bar { padding-top: calc(10px + env(safe-area-inset-top, 0px)); padding-left: calc(16px + env(safe-area-inset-left, 0px)); padding-right: calc(16px + env(safe-area-inset-right, 0px)); }
+.stage { padding-bottom: env(safe-area-inset-bottom, 0px); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bar">
+    <div class="search">
+      <input id="q" type="text" inputmode="search" enterkeyhint="go" autocomplete="off" autocorrect="off"
+        autocapitalize="off" spellcheck="false" placeholder="Tune number or name" aria-label="Tune number or name">
+      <button id="clear" type="button" aria-label="Clear search" hidden>×</button>
+      <div id="results" class="results" role="listbox" hidden></div>
+    </div>
+    <button id="listbtn" class="listbtn" type="button" aria-label="Song list">
+      <span class="lbl">Song list</span><span id="count" class="count">0</span>
+    </button>
+  </div>
+  <div id="tunebar" class="tunebar" hidden>
+    <div id="title" class="title"></div>
+    <div id="nav" class="nav" hidden>
+      <button id="prev" type="button" aria-label="Previous in song list">‹</button>
+      <span id="pos"></span>
+      <button id="next" type="button" aria-label="Next in song list">›</button>
+    </div>
+    <button id="addcur" class="add" type="button"></button>
+  </div>
+  <div id="stage" class="stage">
+    <div class="home" id="hint">
+      <h1 class="home-title">THE BAND TUNE BOOK OF<br>THE SALVATION ARMY</h1>
+      <img class="crest" src="crest.png" alt="">
+      <div id="homemsg" class="homemsg"></div>
+      <div class="part">2nd Cornet</div>
+    </div>
+    <img id="music" alt="" hidden>
+    <input id="file" type="file" hidden>
+  </div>
+</div>
+
+<div id="sheet" class="sheet" hidden>
+  <div class="panel" role="dialog" aria-labelledby="sheettitle">
+    <header><h2 id="sheettitle">Song list</h2><button id="closesheet" class="close" type="button">Done</button></header>
+    <ul id="items" class="items"></ul>
+    <div class="foot"><button id="clearlist" class="danger" type="button">Clear list</button><button id="reload" type="button">Load tune book file again</button></div>
+  </div>
+</div>
+
+<script src="pdf.min.js"></script>
+<script>
+const TUNES = [[1, "Alstone"], [2, "And Above The Rest"], [3, "Angelus"], [4, "Armadale"], [5, "Beethoven"], [6, "Behold Me Standing At The Door"], [7, "Benediction"], [8, "By His Hand"], [9, "Calvary"], [10, "Deep Harmony"], [11, "Duke Street"], [12, "Ernan"], [13, "Harton-Lea"], [14, "He Leadeth Me!"], [15, "Here At The Cross"], [16, "Hereford"], [17, "How Much More"], [18, "Hursley"], [19, "I Dare To Be Different"], [20, "I Love Him Better Every Day"], [21, "I'll Serve My Lord Alone"], [22, "It Was On The Cross"], [23, "Lambton Green"], [24, "Llangollen"], [25, "Maryland"], [26, "Maryton"], [27, "Melcombe"], [28, "Morning Hymn"], [29, "O Happy Day"], [30, "O Waly Waly"], [31, "Old Hundredth"], [32, "Passing By"], [33, "Pentecost"], [34, "Retreat"], [35, "Rimington"], [36, "Rockingham"], [37, "Samson"], [38, "Saved By Grace"], [39, "She's Like The Swallow"], [40, "Silver Hill"], [41, "Simeon"], [42, "St Clements"], [43, "St Francis"], [44, "Tallis"], [45, "Thou Art Enough For Me"], [46, "To Heal The Broken Heart"], [47, "Truro"], [48, "Wareham"], [49, "Warrington"], [50, "Will Your Anchor Hold?"], [51, "Winchester New"], [52, "Before The Throne Of God Above"], [53, "God's Soldier"], [54, "He Wipes The Tear"], [55, "Sweet Hour Of Prayer"], [56, "A Soldier Of The Cross"], [57, "Amazing Grace!"], [58, "Around The Throne"], [59, "Azmon"], [60, "Behold The Saviour"], [61, "Belmont"], [62, "Bishopthorpe"], [63, "Bright Crowns"], [64, "Colne"], [65, "Consolation"], [66, "Covenant"], [67, "Creator God"], [68, "Crimond"], [69, "Diadem"], [70, "Fewster"], [71, "Fountain"], [72, "French"], [73, "Gerontius"], [74, "God Loved The World"], [75, "Grimsby"], [76, "Hallelujah To The Lamb"], [77, "Hardy Norseman"], [78, "Horsley"], [79, "I Feel Like Singing"], [80, "I Know Whom I Have Believed"], [81, "I Love The Saviour's Name"], [82, "Irish"], [83, "I've Found The Pearl"], [84, "Jackson"], [85, "Jesus Saves Me Now"], [86, "Jordan's Banks"], [87, "Joy To The World!"], [88, "Lakeside"], [89, "Lead Me To Calvary"], [90, "Lift Up The Banner"], [91, "Lloyd"], [92, "Lord, Fill My Craving Heart"], [93, "Lydia"], [94, "Margaret"], [95, "Martin"], [96, "Martyrdom"], [97, "Miles Lane"], [98, "My Shepherd"], [99, "Nativity"], [100, "Nativity New"], [101, "None But Christ Can Satisfy"], [102, "O Come To My Heart"], [103, "Only Trust Him"], [104, "Remember Me"], [105, "Repton"], [106, "Rest"], [107, "Richmond"], [108, "Salzburg"], [109, "Sawley"], [110, "Spirit Divine"], [111, "Spohr"], [112, "St Agnes"], [113, "St Ann"], [114, "St Bernard"], [115, "St Magnus"], [116, "St Peter"], [117, "Stracathro"], [118, "The Judgement Day"], [119, "The Saviour's Name"], [120, "They'll Sing A Welcome Home"], [121, "University"], [122, "Westminster"], [123, "While Shepherds Watched"], [124, "Wiltshire"], [125, "Winchester Old"], [126, "Christmas Carol"], [127, "Ellacombe"], [128, "Faith Is The Victory"], [129, "Forest Green"], [130, "God's Love Is Wonderful"], [131, "Haste Away To Jesus"], [132, "In Christ Alone"], [133, "It Came Upon The Midnight Clear"], [134, "Land Of Pure Delight"], [135, "Mercy Still For Thee"], [136, "O Little Town Of Bethlehem"], [137, "Quietness And Confidence"], [138, "Slater"], [139, "St Matthew"], [140, "The Voice Of Jesus"], [141, "Vox Dilecti"], [142, "We'd Better Bide A Wee"], [143, "Yellow Star And Red And Blue"], [144, "A Child This Day Is Born"], [145, "Breath Of God"], [146, "By Thy Side"], [147, "Carlisle"], [148, "Dennis"], [149, "Falcon Street"], [150, "Franconia"], [151, "I Hear Thy Welcome Voice"], [152, "Lascelles"], [153, "Marching To Zion"], [154, "Nearer My Home"], [155, "Silchester"], [156, "Southport"], [157, "St Ethelwald"], [158, "St Michael"], [159, "Trentham"], [160, "A Never-Failing Friend"], [161, "Chalvey"], [162, "Diademata"], [163, "For Ever With The Lord"], [164, "From Strength To Strength"], [165, "Lord, Show Me What I Need"], [166, "Peace"], [167, "Terra Beata"], [168, "Horbury"], [169, "God Gave His Son For Me"], [170, "Incarnation"], [171, "Marshall"], [172, "Nearer My God To Thee"], [173, "Nuttall"], [174, "Penitence"], [175, "Happy Land"], [176, "There Is A Happy Land"], [177, "Come With Happy Faces"], [178, "Eudoxia"], [179, "When I Talk With Jesus"], [180, "Anything For Jesus"], [181, "Armageddon"], [182, "Camberwell"], [183, "Count Your Blessings"], [184, "Cranham"], [185, "Forward! Be Our Watchword"], [186, "In This Quiet Moment"], [187, "Look Away To Jesus"], [188, "Onward Christian Soldiers"], [189, "Princethorpe"], [190, "Rachie"], [191, "Ruth"], [192, "Song Of The Highway"], [193, "Strike For Victory"], [194, "Teach Me How To Love Thee"], [195, "Monks Gate"], [196, "Pilgrim Song"], [197, "Harlan"], [198, "Moscow"], [199, "Brantwood"], [200, "Darwalls"], [201, "Evening"], [202, "Gopsal"], [203, "Lenox"], [204, "Love Unknown"], [205, "St John"], [206, "Ascalon"], [207, "Churchbury"], [208, "Down Where The Living Waters Flow"], [209, "Annie Laurie"], [210, "God Of The Open Spaces"], [211, "My All Is On The Altar"], [212, "Alford"], [213, "Aurelia"], [214, "Day Of Rest"], [215, "Ewing"], [216, "Festive Carol"], [217, "Geibel"], [218, "God Bless The Prince Of Wales"], [219, "Gospel Bells"], [220, "Hatherop Castle"], [221, "Hosanna"], [222, "I Love To Tell The Story"], [223, "Lead On O King Eternal"], [224, "Missionary"], [225, "My Soul Is Now United"], [226, "Passion Chorale"], [227, "Penlan"], [228, "Rutherford"], [229, "Safe In The Arms Of Jesus"], [230, "Shall You Shall I?"], [231, "St Theodulph"], [232, "Stand Up For Jesus"], [233, "Tell Me The Old Old Story"], [234, "The Crimson Stream"], [235, "To The Uttermost He Saves"], [236, "We Plough The Fields"], [237, "Healing Stream"], [238, "Near The Cross"], [239, "Kelvingrove"], [240, "Widford"], [241, "All For Thee"], [242, "Bowes"], [243, "Buckland"], [244, "Children Of Jerusalem"], [245, "Christ Receiveth Sinful Men"], [246, "Consecration Hymn"], [247, "Depth Of Mercy"], [248, "Easter Hymn"], [249, "Hendon"], [250, "Innocents"], [251, "Last Hope"], [252, "Llanfair"], [253, "Michael Row The Boat Ashore"], [254, "Monkland"], [255, "Newton"], [256, "Nottingham"], [257, "Randolph"], [258, "Saviour Lead Me"], [259, "See, Amid The Winter's Snow"], [260, "St Bees"], [261, "Theodora"], [262, "Thou Art A Mighty Saviour"], [263, "Trusting As The Moments Fly"], [264, "Weber"], [265, "Will Ye No' Come Back Again?"], [266, "Worcester"], [267, "Yes, Jesus Loves Me"], [268, "Aberystwyth"], [269, "Come, Ye Thankful People"], [270, "Hark! The Herald Angels Sing"], [271, "Hollingside"], [272, "Maidstone"], [273, "On The Cross Of Calvary"], [274, "Prayer Of Childhood"], [275, "Christ In Me"], [276, "Dix"], [277, "England's Lane"], [278, "Jesus Saviour Pilot Me"], [279, "Norwood"], [280, "Ramsgate"], [281, "Ratisbon"], [282, "Rousseau"], [283, "Spanish Chant"], [284, "Toplady"], [285, "Tyndal"], [286, "Wells"], [287, "Who Is He?"], [288, "Nothing But The Blood Of Jesus"], [289, "Nothing But Thy Blood"], [290, "Behold The Lamb"], [291, "Better World"], [292, "Christ For Me"], [293, "God Is Love"], [294, "Send The Fire"], [295, "Tucker"], [296, "Zealley"], [297, "Bullinger"], [298, "Stephanos"], [299, "Christ Triumphant"], [300, "Hold The Fort"], [301, "My Humble Cry"], [302, "Pass Me Not"], [303, "Whitechapel"], [304, "Worship Prayer"], [305, "Yesterday, Today, For Ever"], [306, "Coronation"], [307, "Dominus Regit Me"], [308, "Give To Jesus Glory"], [309, "Petition"], [310, "St Columba"], [311, "The Great Physician"], [312, "We're Marching On"], [313, "Bishopgarth"], [314, "I've Found A Friend"], [315, "You Can't Stop God From Loving You"], [316, "Beckhall"], [317, "Breathe Upon Me"], [318, "Burning Burning"], [319, "Casting All Your Care On Him"], [320, "Channels Only"], [321, "Cross Of Jesus"], [322, "Crown The Saviour"], [323, "Denmark Hill"], [324, "Even Me"], [325, "Face To Face"], [326, "Galilee"], [327, "Glory To The Lamb"], [328, "Govaars"], [329, "Healing Christ"], [330, "I Am Praying, Blessed Saviour"], [331, "I Love Jesus"], [332, "I Must Have The Saviour With Me"], [333, "I Surrender All"], [334, "I Will Follow Thee My Saviour"], [335, "I Will Guide Thee"], [336, "I Will Sing Of My Redeemer"], [337, "I Will Sing The Wondrous Story"], [338, "I'm A Soldier"], [339, "In Me, Lord"], [340, "Let The Lower Lights Be Burning"], [341, "Marching"], [342, "Not My Own"], [343, "O The Peace"], [344, "Pour Thy Spirit"], [345, "Precious Name"], [346, "Sardis"], [347, "Shall We Gather At The River?"], [348, "St Oswald"], [349, "Stainer"], [350, "Sweet Chiming Bells"], [351, "The Reason"], [352, "The Servant Song"], [353, "This Is Why"], [354, "Walk With Me"], [355, "Waltham"], [356, "What A Saviour!"], [357, "When We All Get To Heaven"], [358, "Abbot's Leigh"], [359, "Beautiful Zion"], [360, "Bethany"], [361, "Blaenwern"], [362, "Calabar"], [363, "Courage Brother"], [364, "David Of The White Rock"], [365, "Ebenezer"], [366, "Ellan Vannin"], [367, "Europe"], [368, "He The Pearly Gates Will Open"], [369, "Here Is Love"], [370, "Hyfrydol"], [371, "In The Secret Of Thy Presence"], [372, "Let Me Love Thee"], [373, "Meet Me At The Fountain"], [374, "Nettleton"], [375, "Pleasure In His Service"], [376, "Room For Jesus"], [377, "Salvator"], [378, "Shall We Meet?"], [379, "South Shields"], [380, "Speak Saviour Speak"], [381, "Tack Min Gud"], [382, "The Pathway Of Duty"], [383, "The Vacant Chair"], [384, "Vesper Hymn"], [385, "What A Friend"], [386, "When The Mists Have Rolled Away"], [387, "Whither Pilgrims?"], [388, "Zulu Air"], [389, "A Perfect Trust"], [390, "Irby"], [391, "None Of Self"], [392, "Ottawa"], [393, "At Thy Feet I Bow Adoring"], [394, "Austria"], [395, "Bithynia"], [396, "Blessed Lord"], [397, "Bread Of Heaven"], [398, "Come And Worship"], [399, "Cwm Rhondda"], [400, "Guide Me Great Jehovah"], [401, "Happy People"], [402, "Helmsley"], [403, "Living Waters"], [404, "Love Divine"], [405, "Mannheim"], [406, "Praise My Soul"], [407, "Regent Square"], [408, "Triumph"], [409, "Westminster Abbey"], [410, "Out Of My Darkness"], [411, "Showers Of Blessing"], [412, "Jesus Is Looking For Thee"], [413, "Tell Me The Story Of Jesus"], [414, "Christ Is All"], [415, "He Lives"], [416, "Pembroke"], [417, "Praise"], [418, "Wellington City"], [419, "Almsgiving"], [420, "Troyte"], [421, "Childhood"], [422, "He Lifted Me"], [423, "He Writes The Pardon On My Heart"], [424, "Just As Thou Art"], [425, "Misericordia"], [426, "O Live Thy Life In Me!"], [427, "St Margaret"], [428, "Take All My Sins Away"], [429, "Take Me As I Am"], [430, "Almighty To Save"], [431, "Be Glad In The Lord"], [432, "Speak"], [433, "In The Strength Of The Lord"], [434, "The Cross Now Covers My Sins"], [435, "Thou Shepherd Of Israel"], [436, "Cardiff"], [437, "Carey's"], [438, "Eaton"], [439, "Eternal God"], [440, "Lord Of All"], [441, "Make Me Aware Of Thee"], [442, "Melita"], [443, "Mozart"], [444, "O Come Immanuel"], [445, "Sagina"], [446, "Solid Rock"], [447, "St Catherine"], [448, "Stella"], [449, "Turner"], [450, "Ye Banks And Braes"], [451, "God Be With You"], [452, "Crugybar"], [453, "O That's The Place"], [454, "Where I Love To Be"], [455, "We Shall Win"], [456, "Yes O Yes!"], [457, "The Greatest Of These"], [458, "Thy Love Enthrone!"], [459, "Cleansing For Me"], [460, "Long Long Ago"], [461, "Sine Nomine"], [462, "St Philip"], [463, "Abide With Me"], [464, "Bartholomew"], [465, "Ellers"], [466, "God Of Our Fathers"], [467, "Spirit Of God Descend"], [468, "Sunset"], [469, "Woodlands"], [470, "Yanworth"], [471, "Beautiful Christ"], [472, "I Am So Glad"], [473, "Lord Thou Art Questioning"], [474, "O For A Heart Whiter Than Snow"], [475, "The Glory Song"], [476, "Christians Awake"], [477, "Hammond"], [478, "Love's Old Sweet Song"], [479, "Hanover"], [480, "Houghton"], [481, "Laudate Dominum"], [482, "Montgomery"], [483, "I Think When I Read"], [484, "The Old Rustic Bridge"], [485, "Those Endearing Young Charms"], [486, "Hark Hark, My Soul"], [487, "Hold Thou My Hand!"], [488, "How Great Thou Art!"], [489, "I Know A Fount"], [490, "I'll Not Turn Back"], [491, "Just Where He Needs Me"], [492, "Lord Of The Years"], [493, "Mendelssohn"], [494, "Pilgrims"], [495, "Still With Thee"], [496, "Adeste Fideles"], [497, "Away In A Manger"], [498, "Cossar"], [499, "Flow Gently Sweet Afton"], [500, "Foundation"], [501, "Gordon"], [502, "Great Things He Hath Done!"], [503, "If Ever I Loved Thee"], [504, "I'm The Child Of A King"], [505, "Lord Jesus I Long"], [506, "My Jesus, I Love Thee"], [507, "Normandy Carol"], [508, "St Denio"], [509, "Stowey"], [510, "Take Time To Be Holy"], [511, "The Manger Scene"], [512, "The Wounds Of Christ"], [513, "To God Be The Glory"], [514, "Unsworth"], [515, "When He Cometh"], [516, "Yield Not To Temptation"], [517, "At The Cross"], [518, "Is It Nothing To You?"], [519, "Life For A Look"], [520, "The Old Rugged Cross"], [521, "They Are Nailed To The Cross"], [522, "Trust And Obey"], [523, "We'll All Shout Hallelujah"], [524, "Esher"], [525, "God Be In My Head"], [526, "Invocation"], [527, "Blacklands"], [528, "He Giveth More Grace"], [529, "The Ash Grove"], [530, "The Eden Above"], [531, "A Melody In My Heart"], [532, "A Miracle Of Grace"], [533, "A New World"], [534, "A Robe Of White"], [535, "A Starry Night"], [536, "A Wonderful Saviour"], [537, "Abba Father"], [538, "Able To Save"], [539, "Above All"], [540, "All Hail The Lamb"], [541, "All Heaven Declares"], [542, "All I Have I Am Bringing To Thee"], [543, "All My Days And All My Hours"], [544, "All My Heart I Give To Thee"], [545, "All Over The World"], [546, "All That I Am"], [547, "All That You Need Is A Miracle"], [548, "All The World Is Waiting"], [549, "All There Is Of Me Lord"], [550, "All Things Bright And Beautiful"], [551, "All Through The Night"], [552, "All Through The Years"], [553, "All Your Anxiety"], [554, "Alleluia Give Thanks"], [555, "Amazing Love"], [556, "Ancient Of Days"], [557, "Are You Washed?"], [558, "As High As The Sky"], [559, "As The Deer"], [560, "As We Are Gathered"], [561, "As We Pray"], [562, "Ask! Ask! Ask!"], [563, "At Calvary"], [564, "At Thy Feet I Fall"], [565, "Battle Hymn Of The Republic"], [566, "Be Still, For The Presence Of The Lord"], [567, "Be The Centre"], [568, "Be Thou My Vision"], [569, "Beautiful Saviour"], [570, "Because He Lives"], [571, "Beechwood"], [572, "Before I Found Salvation"], [573, "Begone Vain World"], [574, "Beneath The Cross"], [575, "Bless His Holy Name"], [576, "Bless Me Now"], [577, "Blessed Assurance"], [578, "Brahms Lullaby"], [579, "Bringing In The Sheaves"], [580, "By The Grace Of God"], [581, "Calypso Carol"], [582, "Catelinet"], [583, "Celebrate"], [584, "Change My Heart, O God"], [585, "Checkendon"], [586, "Chosen To Be A Soldier"], [587, "Christ For The Whole Wide World"], [588, "Christ Is The Answer"], [589, "Climbing Up The Golden Stair"], [590, "Come Home!"], [591, "Come Into His Presence"], [592, "Come, Beautiful Christ"], [593, "Come Holy Spirit"], [594, "Come, Let Us Sing Of A Wonderful Love"], [595, "Come Lord Jesus"], [596, "Come, Now Is The Time"], [597, "Come, Shout And Sing"], [598, "Contentment"], [599, "Dare To Be A Daniel"], [600, "Do Not Go Home Without Jesus"], [601, "Does Jesus Care?"], [602, "Down Ampney"], [603, "Draw Me Nearer"], [604, "Dutch Carol"], [605, "Ein' Feste Burg"], [606, "Enter Enter"], [607, "Faithful God"], [608, "Fan The Flame In Me"], [609, "Father, We Love You"], [610, "Fellowship With Thee"], [611, "Fill Me Anew"], [612, "Finlandia"], [613, "Follow On"], [614, "Follow Thou Me"], [615, "For I'm Building A People Of Power"], [616, "For The Mighty Moving Of Thy Spirit"], [617, "For They That Wait Upon The Lord"], [618, "For Thine Is The Kingdom"], [619, "For This I Have Jesus"], [620, "Forever"], [621, "Freely Freely"], [622, "From That Sacred Hill"], [623, "Full Surrender"], [624, "Gabriel's Message"], [625, "Gird On The Armour"], [626, "Give Thanks"], [627, "Glory In The Highest"], [628, "Glory To God"], [629, "Glory To His Name"], [630, "Glory! Glory!"], [631, "Go, Tell It On The Mountain!"], [632, "God In You"], [633, "God Is Keeping His Soldiers Fighting"], [634, "God Is Spirit"], [635, "God Is Still On The Throne"], [636, "God Is With Us All The Time"], [637, "God Of All Greatness"], [638, "God Of The Poor"], [639, "God Will Make A Way"], [640, "Grace Alone"], [641, "Great Is Thy Faithfulness"], [642, "Hail Calvary"], [643, "Happiness Is The Lord"], [644, "Happy Song"], [645, "He Came To Give Us Life"], [646, "He Cares For Me"], [647, "He Hideth My Soul"], [648, "He Is Able"], [649, "He Is Lord"], [650, "He Keeps Me Singing"], [651, "He Touched Me"], [652, "Heaven Came Down"], [653, "Here I Am To Worship"], [654, "Here Is The Place"], [655, "He's The Same Today As Yesterday"], [656, "His Love Remains The Same"], [657, "His Loving Touch"], [658, "His Provision"], [659, "His Way Is Best"], [660, "Holy Ground"], [661, "Holy Spirit Come, O Come"], [662, "Hosanna In The Highest"], [663, "How Deep The Father's Love For Us"], [664, "How Great Is Our God"], [665, "How Majestic Is Your Name"], [666, "Hundreds And Thousands"], [667, "I Am A New Creation"], [668, "I Am Amazed"], [669, "I Am Coming To The Saviour"], [670, "I Am Not Under Law"], [671, "I Believe"], [672, "I Believe God Answers Prayer"], [673, "I Believe In The Word Of God"], [674, "I Bring My Heart To Jesus"], [675, "I Bring Thee All"], [676, "I Give You My Heart"], [677, "I Lift My Eyes To The Quiet Hills"], [678, "I Love To Sing"], [679, "I Love You, Lord"], [680, "I Need Thee"], [681, "I Serve A Risen Saviour"], [682, "I Think Of All His Sorrow"], [683, "I Want To Be A Soldier"], [684, "I Want To Live Right"], [685, "I Want To Sing It"], [686, "I Want To Walk With Jesus Christ"], [687, "I Will Enter His Gates"], [688, "I Will Praise You, Lord, With All My Heart!"], [689, "I, The Lord Of Sea And Sky"], [690, "I'll Be True"], [691, "I'll Follow Thee"], [692, "I'll Stand For Christ"], [693, "I'm In His Hands"], [694, "I'm Living My Life For Jesus"], [695, "In Deeper Consecration"], [696, "In God's Tomorrow"], [697, "In Him Abiding"], [698, "In My Heart A Song Is Ringing"], [699, "In My Heart There Rings A Melody"], [700, "In Thee O Lord"], [701, "Into Thy Hands, Lord"], [702, "Iris"], [703, "It Is Jesus"], [704, "It Is Well With My Soul"], [705, "It's No Longer I That Liveth"], [706, "I've Been Changed"], [707, "Jesus Bids Us Shine"], [708, "Jesus Is Lord!"], [709, "Jesus Is My Light"], [710, "Jesus Is Strong To Deliver"], [711, "Jesus Put This Song Into Our Hearts"], [712, "Jesus Saves!"], [713, "Jesus, Jesus Lily Of The Valley"], [714, "Jesus, Name Above All Names"], [715, "Jesus, Now More Than Ever"], [716, "Jesus, Stand Among Us"], [717, "Jesus, Thou Art Everything To Me"], [718, "Jesus, What A Beautiful Name"], [719, "Joy In The Salvation Army"], [720, "Keep In Step"], [721, "Keep On Believing"], [722, "King Of Kings Majesty"], [723, "Kitching"], [724, "Knowing My Failings"], [725, "Knowing You"], [726, "Lathbury"], [727, "Laudes Domini"], [728, "Leaning On The Everlasting Arms"], [729, "Let The Beauty Of Jesus"], [730, "Let There Be Love"], [731, "Lift Up The Army Banner"], [732, "Light Up The Fire"], [733, "Living Beneath The Shade Of The Cross"], [734, "Living Lord"], [735, "Lobe Den Herren"], [736, "Londonderry Air"], [737, "Lord Of The Dance"], [738, "Lord, Be Glorified"], [739, "Lord, How I Love You"], [740, "Lord If Your Presence"], [741, "Lord, Make Calvary Real To Me"], [742, "Lord, With My All I Part"], [743, "Love At Home"], [744, "Love Lifted Me"], [745, "Luckington"], [746, "Maccabeus"], [747, "Made In The Likeness Of God"], [748, "Majestas"], [749, "Majesty"], [750, "Make Me A Channel Of Blessing"], [751, "Make Me A Channel Of Your Peace"], [752, "Make No Delay"], [753, "Make Way"], [754, "Man Of Sorrows!"], [755, "Meet My Need, Lord"], [756, "Men Of Harlech"], [757, "Michael"], [758, "Mighty To Save"], [759, "Morning Has Broken"], [760, "Mother Machree"], [761, "Mothers Of Salem"], [762, "Move Holy Spirit!"], [763, "My Bonnie Lies Over The Ocean"], [764, "My Desire"], [765, "My Destiny"], [766, "My Home Is In Heaven"], [767, "My Lord And Christ!"], [768, "My Redeemer Lives"], [769, "My Saviour's Love"], [770, "Neighbour"], [771, "Nicaea"], [772, "No Other Name"], [773, "Noel"], [774, "Now I Belong To Jesus"], [775, "Now Thank We All Our God"], [776, "Now The Fruit Of The Spirit"], [777, "O Church Arise"], [778, "O Give Thanks"], [779, "O Man Of Galilee"], [780, "O Remember"], [781, "O Touch Me Again, Lord"], [782, "O What A Hiding Place"], [783, "O What A Wonderful Day"], [784, "Oasis"], [785, "Ochills"], [786, "Of The Father's Heart Begotten"], [787, "Old Yeavering"], [788, "On We March"], [789, "Once Again"], [790, "Only By Grace"], [791, "Open Our Eyes, Lord"], [792, "Open The Eyes Of My Heart"], [793, "Our God Reigns"], [794, "Out Of My Bondage"], [795, "Over Jordan"], [796, "Pax Tecum"], [797, "People Need The Lord"], [798, "Praise God I'm Saved!"], [799, "Praise Him!"], [800, "Prayer Gently Lifts Me"], [801, "Promoted To Glory"], [802, "Quem Pastores Laudavere"], [803, "Ravenshaw"], [804, "Reckon On Me"], [805, "Refiner's Fire"], [806, "Reign In Me"], [807, "Rejoice!"], [808, "Rescue The Perishing"], [809, "Ring The Bell Watchman"], [810, "Ring The Bells Of Heaven"], [811, "Royal Oak"], [812, "Saints Of God"], [813, "Salvation Song"], [814, "Sandon"], [815, "Saved And Kept"], [816, "Say It Loud"], [817, "Sealed By Thy Spirit"], [818, "Seek Ye First"], [819, "Send A New Touch Of Power"], [820, "Share My Yoke"], [821, "Shepherd Hear My Prayer!"], [822, "Shine Jesus Shine"], [823, "Shout Aloud Salvation"], [824, "Shout To The Lord"], [825, "Shout To The North"], [826, "Show Your Power"], [827, "Silently Now I Wait For Thee"], [828, "Since Jesus Came Into My Heart"], [829, "Sing And Make Music"], [830, "Sing Hosanna!"], [831, "Slane"], [832, "Someone Cares"], [833, "Sound The Battle Cry!"], [834, "Spirit Of The Living God"], [835, "Spiritus Vitae"], [836, "St Christopher"], [837, "St Cuthbert"], [838, "St Leonards"], [839, "St Teresa"], [840, "Standing On The Promises"], [841, "Steadily Forward March!"], [842, "Stille Nacht"], [843, "Stories Of Jesus"], [844, "Storm The Forts Of Darkness"], [845, "Such Love"], [846, "Sunshine"], [847, "Sweeping Through The Gates"], [848, "Sweet Spirit Of Christ"], [849, "Swing Wide The Door Of Your Heart"], [850, "Teach Me To Dance"], [851, "Thank You"], [852, "Thank You For Saving Me"], [853, "Thank You God"], [854, "That's The Spirit"], [855, "The Cross Is Not Greater Than His Grace"], [856, "The Day Of Victory's Coming"], [857, "The First Nowell"], [858, "The Heart Of Worship"], [859, "The Light Has Come"], [860, "The Lily Of The Valley"], [861, "The Lord Bless Thee"], [862, "The Lord Is Near"], [863, "The Lord's My Shepherd"], [864, "The Name Of Jesus"], [865, "The Name Of Names"], [866, "The Penitent's Plea"], [867, "The Potter's Hand"], [868, "The Power Of Your Love"], [869, "The Servant King"], [870, "The Stranger Of Galilee"], [871, "The Virgin Mary Had A Baby Boy"], [872, "The Well Is Deep"], [873, "The Wonder Of His Grace"], [874, "The Wonder Of It All"], [875, "The Wonderful Cross"], [876, "The World For God"], [877, "The World Is Needing Us"], [878, "There Is A Hope"], [879, "There Is A Message"], [880, "There Is A New Song"], [881, "There Is A Redeemer"], [882, "There Is Sunshine"], [883, "There's Joy In Following"], [884, "There's Only One Flag For Me"], [885, "There's Something About That Name"], [886, "They Need Christ"], [887, "They Shall Come From The East"], [888, "Thine Own Way, Lord"], [889, "This Is God's Moment"], [890, "This Is The Day"], [891, "This Is What The Lord Has Done"], [892, "This Is Your God"], [893, "This One Thing I Know"], [894, "This Thankful Heart"], [895, "Thou Wilt Keep Him In Perfect Peace"], [896, "Though Your Sins Be As Scarlet"], [897, "'Tis Wonderful To Know"], [898, "To Be Like Jesus"], [899, "To Save A Poor Sinner"], [900, "To Thy Cross I Come, Lord"], [901, "To You O Lord"], [902, "Travel Along In The Sunshine"], [903, "Trust In God"], [904, "Turn Your Eyes Upon Jesus"], [905, "Up From The Grave He Arose"], [906, "Victory"], [907, "Victory For Me"], [908, "Victory In Jesus"], [909, "Walk In The Light"], [910, "War Cry"], [911, "Was Lebet"], [912, "We Are Marching In The Light Of God"], [913, "We Have A Gospel"], [914, "We Have Peace"], [915, "We Three Kings Of Orient Are"], [916, "We Want To See Jesus Lifted High"], [917, "We'll Never Let The Old Flag Fall"], [918, "We'll Sing In The Morning"], [919, "We're All Seeking The Same Saviour"], [920, "We're The Army"], [921, "Were You There?"], [922, "We've A Story To Tell"], [923, "What A Faithful God"], [924, "What The Lord Has Done In Me"], [925, "When His Love Reached Me"], [926, "When I Came To Him"], [927, "When I Look Into Your Holiness"], [928, "When The Glory Gets Into Your Soul"], [929, "When The Roll Is Called Up Yonder"], [930, "Where He Leads Me"], [931, "Whisper A Prayer In The Morning"], [932, "Whiter Than The Snow"], [933, "Who Can Sound The Depths Of Sorrow?"], [934, "Who'll Be The Next?"], [935, "Whosoever Heareth"], [936, "Whosoever Will May Come"], [937, "With Love In Our Hearts"], [938, "With Thy Spirit Fill Me"], [939, "Wonderful Healer"], [940, "Wonderful Love"], [941, "Wonderful Place Called Calvary"], [942, "Wonderful Story Of Love"], [943, "Wonderful Words Of Life"], [944, "Wonderful Wonderful Jesus"], [945, "Wonder-Working Power"], [946, "Wondrous Love"], [947, "Worthy Is The Lamb"], [948, "You Came From Heaven To Earth"], [949, "You Can Tell Out The Sweet Story"], [950, "You Know That We Love You!"], [951, "You Laid Aside Your Majesty"], [952, "Advance Australia Fair"], [953, "America The Beautiful"], [954, "God Bless America"], [955, "God Defend New Zealand"], [956, "God Save The Queen (King)"], [957, "O Canada"], [958, "The Star-Spangled Banner"]];
+const byNo = new Map(TUNES.map(t => [t[0], t[1]]));
+const $ = id => document.getElementById(id);
+const q = $('q'), results = $('results'), stage = $('stage'), img = $('music');
+
+/* ---------- song list (kept on this iPad) ---------- */
+let list = [];
+try { list = JSON.parse(localStorage.getItem('songlist') || '[]').filter(n => byNo.has(n)); } catch (e) { list = []; }
+function saveList() { try { localStorage.setItem('songlist', JSON.stringify(list)); } catch (e) {} $('count').textContent = list.length; }
+function inList(n) { return list.includes(n); }
+function toggle(n) { if (inList(n)) list = list.filter(x => x !== n); else list.push(n); saveList(); }
+saveList();
+
+/* ---------- music data: the tune book PDF (one tune per page), picked once and kept on this iPad ---------- */
+let dbp = null;
+function db() {
+  if (!dbp) dbp = new Promise(res => {
+    try {
+      const r = indexedDB.open('tunebook', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('packs');
+      r.onsuccess = () => res(r.result); r.onerror = () => res(null);
+    } catch (e) { res(null); }
+  });
+  return dbp;
+}
+async function idbGet(k) { const d = await db(); if (!d) return null;
+  return new Promise(res => { try { const r = d.transaction('packs').objectStore('packs').get(k); r.onsuccess = () => res(r.result || null); r.onerror = () => res(null); } catch (e) { res(null); } }); }
+async function idbPut(k, v) { const d = await db(); if (!d) return false;
+  return new Promise(res => { try { const t = d.transaction('packs', 'readwrite'); t.objectStore('packs').put(v, k); t.oncomplete = () => res(true); t.onerror = () => res(false); } catch (e) { res(false); } }); }
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+let PDF = null;
+async function openBook(buf) {
+  const doc = await pdfjsLib.getDocument({ data: new Uint8Array(buf.slice(0)) }).promise;
+  if (doc.numPages !== TUNES.length) throw new Error('pages');
+  PDF = doc;
+}
+const rendered = new Map();
+async function srcFor(n) {
+  if (rendered.has(n)) return rendered.get(n);
+  const page = await PDF.getPage(n);
+  const base = page.getViewport({ scale: 1 });
+  const scale = 2300 / base.width;
+  const vp = page.getViewport({ scale });
+  const c = document.createElement('canvas');
+  c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+  await page.render({ canvasContext: ctx, viewport: vp }).promise;
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  const url = URL.createObjectURL(blob);
+  rendered.set(n, url);
+  if (rendered.size > 12) { const k = rendered.keys().next().value; URL.revokeObjectURL(rendered.get(k)); rendered.delete(k); }
+  return url;
+}
+function warmAll() {}
+
+/* ---------- search ---------- */
+const norm = s => s.toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const idx = TUNES.map(([n, name]) => ({ n, name, key: norm(name) }));
+let hits = [], sel = 0;
+function search(raw) {
+  const s = norm(raw);
+  if (!s) return [];
+  if (/^\d+$/.test(s)) {
+    const exact = idx.filter(t => String(t.n) === s);
+    const pre = idx.filter(t => String(t.n).startsWith(s) && String(t.n) !== s);
+    return exact.concat(pre).slice(0, 30);
+  }
+  const words = s.split(' ');
+  const scored = [];
+  for (const t of idx) {
+    if (!words.every(w => t.key.includes(w))) continue;
+    let score = 0;
+    if (t.key.startsWith(s)) score += 100;
+    if ((' ' + t.key).includes(' ' + words[0])) score += 20;
+    score -= t.key.length / 100;
+    scored.push([score, t]);
+  }
+  return scored.sort((a, b) => b[0] - a[0]).map(x => x[1]).slice(0, 40);
+}
+function esc(s) { return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function renderResults() {
+  const v = q.value.trim();
+  $('clear').hidden = !v;
+  if (!v) { results.hidden = true; return; }
+  hits = search(v); sel = 0;
+  if (!hits.length) {
+    results.innerHTML = '<div class="empty">No tune matches “' + esc(v) + '”. Numbers go from 1 to 958.</div>';
+  } else {
+    results.innerHTML = hits.map((t, i) =>
+      '<div class="row' + (i === sel ? ' sel' : '') + '" role="option">' +
+      '<button class="open" type="button" data-n="' + t.n + '"><span class="num">' + t.n + '</span><span class="name">' + esc(t.name) + '</span></button>' +
+      '<button class="add' + (inList(t.n) ? ' on' : '') + '" type="button" data-add="' + t.n + '">' + (inList(t.n) ? '✓ In list' : '+ Add') + '</button></div>').join('');
+  }
+  results.hidden = false;
+}
+q.addEventListener('input', renderResults);
+q.addEventListener('focus', () => { q.select(); renderResults(); });
+q.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); if (hits[sel]) show(hits[sel].n, null); }
+  else if (e.key === 'ArrowDown' && hits.length) { e.preventDefault(); sel = Math.min(sel + 1, hits.length - 1); mark(); }
+  else if (e.key === 'ArrowUp' && hits.length) { e.preventDefault(); sel = Math.max(sel - 1, 0); mark(); }
+  else if (e.key === 'Escape') { q.blur(); results.hidden = true; }
+});
+function mark() { [...results.children].forEach((r, i) => r.classList.toggle('sel', i === sel)); }
+results.addEventListener('click', e => {
+  const a = e.target.closest('[data-add]');
+  if (a) { toggle(+a.dataset.add); renderResults(); refreshCur(); return; }
+  const o = e.target.closest('[data-n]');
+  if (o) show(+o.dataset.n, null);
+});
+$('clear').addEventListener('click', () => { q.value = ''; renderResults(); q.focus(); });
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.search')) results.hidden = true; });
+
+/* ---------- showing a tune ---------- */
+let cur = null, fromList = false, token = 0;
+async function show(n, listMode) {
+  cur = n; fromList = listMode === true;
+  q.value = ''; $('clear').hidden = true; results.hidden = true; q.blur();
+  $('hint').hidden = true; $('tunebar').hidden = false;
+  $('title').innerHTML = '<b>' + n + '</b>' + esc(byNo.get(n));
+  refreshCur();
+  const my = ++token;
+  img.hidden = true;
+  let l = stage.querySelector('.loading');
+  if (!l) { l = document.createElement('div'); l.className = 'loading'; stage.prepend(l); }
+  l.textContent = 'Loading ' + n + '…'; l.hidden = false;
+  try {
+    const src = await srcFor(n);
+    if (my !== token) return;
+    img.onload = () => { if (my !== token) return; l.hidden = true; img.hidden = false; img.alt = 'Music for ' + n + ' ' + byNo.get(n); fit(); stage.scrollTop = 0; };
+    img.src = src;
+  } catch (e) {
+    if (my === token) l.textContent = 'Could not load the music. Check the internet connection and tap the tune again.';
+  }
+  try { localStorage.setItem('last', JSON.stringify([n, fromList])); } catch (e) {}
+}
+function refreshCur() {
+  if (cur == null) return;
+  const b = $('addcur'), on = inList(cur);
+  b.textContent = on ? '✓ In list' : '+ Add to list'; b.classList.toggle('on', on);
+  const i = list.indexOf(cur);
+  $('nav').hidden = !(fromList && i >= 0);
+  if (fromList && i >= 0) { $('pos').textContent = (i + 1) + ' of ' + list.length; $('prev').disabled = i === 0; $('next').disabled = i === list.length - 1; }
+}
+$('addcur').addEventListener('click', () => { toggle(cur); refreshCur(); });
+function step(d) { const i = list.indexOf(cur); const j = i + d; if (fromList && i >= 0 && j >= 0 && j < list.length) show(list[j], true); }
+$('prev').addEventListener('click', () => step(-1));
+$('next').addEventListener('click', () => step(1));
+document.addEventListener('keydown', e => { if (document.activeElement === q) return; if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); });
+let sx = null, sy = null;
+stage.addEventListener('touchstart', e => { if (e.touches.length === 1) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; } }, { passive: true });
+stage.addEventListener('touchend', e => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
+  if (Math.abs(dx) > 80 && Math.abs(dx) > 2 * Math.abs(dy)) step(dx < 0 ? 1 : -1); }, { passive: true });
+
+// Fill the screen: show the whole tune when it fits reasonably, else fill the width and scroll.
+function fit() {
+  if (img.hidden || !img.naturalWidth) return;
+  const W = stage.clientWidth, H = stage.clientHeight;
+  const sw = W / img.naturalWidth, sh = H / img.naturalHeight;
+  const s = Math.min(sw, sh) >= 0.7 * sw ? Math.min(sw, sh) : sw;
+  img.style.width = Math.floor(img.naturalWidth * s) + 'px';
+  img.style.height = Math.floor(img.naturalHeight * s) + 'px';
+}
+addEventListener('resize', fit);
+
+/* ---------- song list sheet ---------- */
+function renderList() {
+  const ul = $('items');
+  if (!list.length) { ul.innerHTML = '<li><div class="empty">Your song list is empty. Search for a tune and tap <b>+ Add</b>.</div></li>'; }
+  else ul.innerHTML = list.map((n, i) =>
+    '<li class="' + (n === cur && fromList ? 'cur' : '') + '"><button class="open" type="button" data-n="' + n + '"><span class="num">' + n + '</span><span class="name">' + esc(byNo.get(n)) + '</span></button>' +
+    '<button class="mini" type="button" data-up="' + i + '" aria-label="Move up"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+    '<button class="mini" type="button" data-down="' + i + '" aria-label="Move down"' + (i === list.length - 1 ? ' disabled' : '') + '>↓</button>' +
+    '<button class="mini x" type="button" data-rm="' + i + '" aria-label="Remove">✕</button></li>').join('');
+  const c = $('clearlist'); c.hidden = !list.length; c.textContent = 'Clear list'; c.classList.remove('confirm');
+}
+$('listbtn').addEventListener('click', () => { renderList(); $('sheet').hidden = false; });
+$('closesheet').addEventListener('click', () => { $('sheet').hidden = true; });
+$('sheet').addEventListener('click', e => {
+  if (e.target === $('sheet')) { $('sheet').hidden = true; return; }
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.n) { $('sheet').hidden = true; show(+t.dataset.n, true); return; }
+  if (t.dataset.up) { const i = +t.dataset.up; [list[i - 1], list[i]] = [list[i], list[i - 1]]; }
+  else if (t.dataset.down) { const i = +t.dataset.down; [list[i + 1], list[i]] = [list[i], list[i + 1]]; }
+  else if (t.dataset.rm) { list.splice(+t.dataset.rm, 1); }
+  else if (t.id === 'clearlist') {
+    if (!t.classList.contains('confirm')) { t.classList.add('confirm'); t.textContent = 'Tap again to clear all'; return; }
+    list = [];
+  } else return;
+  saveList(); renderList(); refreshCur();
+});
+
+/* ---------- keep the screen awake during a concert ---------- */
+let lock = null;
+async function wake() { try { if ('wakeLock' in navigator && document.visibilityState === 'visible') lock = await navigator.wakeLock.request('screen'); } catch (e) {} }
+document.addEventListener('visibilitychange', wake);
+document.addEventListener('pointerdown', () => { if (!lock) wake(); }, { once: true });
+
+/* ---------- start: use the tune book saved on this iPad, or ask for the PDF once ---------- */
+const hint = $('homemsg');
+const FILENAME = 'Band Tune Book - 2nd Cornet.pdf';
+function askForFile(msg) {
+  $('tunebar').hidden = true; img.hidden = true;
+  $('hint').hidden = false;
+  hint.innerHTML = '<strong>Load your tune book</strong><br>Choose the file <strong>' + FILENAME + '</strong> from Files. ' +
+    'You only need to do this once. The music then stays on this iPad and works without internet.' +
+    (msg ? '<br><br><span style="color:var(--danger)">' + esc(msg) + '</span>' : '') +
+    '<br><br><button id="pick" class="add on" type="button" style="height:64px;font-size:22px;padding:0 28px">Choose tune book file</button>';
+  $('pick').onclick = () => $('file').click();
+}
+$('file').addEventListener('change', async () => {
+  const f = $('file').files[0]; if (!f) return;
+  hint.innerHTML = 'Loading the tune book…';
+  try {
+    const buf = await f.arrayBuffer();
+    await openBook(buf);
+    const ok = await idbPut('book', buf);
+    $('file').value = '';
+    hint.innerHTML = ok ? '' : 'This browser would not save the tune book, so you may need to load it again next time.';
+    $('sheet').hidden = true;
+  } catch (e) {
+    askForFile('That file is not the tune book. Choose “' + FILENAME + '”.');
+  }
+});
+$('reload').addEventListener('click', () => { $('sheet').hidden = true; askForFile(''); });
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); }
+(async () => {
+  let buf = null;
+  try { buf = await idbGet('book'); } catch (e) {}
+  if (!buf) { askForFile(''); return; }
+  try { await openBook(buf); } catch (e) { askForFile(''); return; }
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+  try { const last = JSON.parse(localStorage.getItem('last') || 'null'); if (last && byNo.has(last[0])) show(last[0], last[1]); } catch (e) {}
+})();
+</script>
+</body>
+</html>
