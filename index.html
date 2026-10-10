@@ -71,7 +71,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 #qn { caret-color: transparent; }
 .namebox { flex: 1; min-width: 0; position: relative; }
 #q, #qn { width: 100%; box-sizing: border-box; font-family: var(--key-font); font-size: 28px; font-weight: 400; height: 60px;
-  padding: 0 56px 0 18px; border: 0; border-radius: 10px; background: #fff; color: #000;
+  padding: 0 56px 0 18px; border: 0; border-radius: 8px; background: #fff; color: #000;
   box-shadow: 0 1px 0 rgba(0, 0, 0, .3); -webkit-appearance: none; appearance: none; }
 #qn { flex: none; width: var(--padw); padding-right: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
 #qn::placeholder { color: #4a4f58; font-weight: 700; }
@@ -80,7 +80,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 #clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
   width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent;
   font-family: var(--key-font); font-size: 28px; color: rgba(60, 60, 67, .55); }
-.listbtn { flex: none; display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 18px; border: 0; border-radius: 10px;
+.listbtn { flex: none; display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 18px; border: 0; border-radius: 8px;
   background: rgba(255, 255, 255, .88); color: #000; box-shadow: 0 1px 0 rgba(0, 0, 0, .3); font-family: var(--key-font); font-weight: 400; font-size: 22px; }
 .listbtn:active { background: rgba(172, 177, 187, .9); }
 .count { font-family: var(--key-font); font-weight: 600; min-width: 1.6em; padding: 2px 8px; border-radius: 999px; background: var(--accent);
@@ -88,7 +88,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 
 /* Results dropdown */
 .results { position: absolute; left: 0; right: 0; top: 100%; margin-top: 8px; z-index: 5;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
   max-height: min(70vh, 640px); overflow-y: auto; box-shadow: 0 12px 32px rgba(0,0,0,.18); }
 .row { display: flex; align-items: center; gap: 14px; padding: 6px 8px 6px 16px; border-top: 1px solid var(--line); }
 .row:first-child { border-top: 0; }
@@ -97,7 +97,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   border: 0; background: transparent; padding: 12px 0; font-size: 24px; }
 .num { font-family: var(--num-font); font-weight: 700; font-variant-numeric: tabular-nums; min-width: 2.4em; color: var(--accent); }
 .name { min-width: 0; overflow-wrap: anywhere; }
-.add { flex: none; height: 52px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--accent);
+.add { flex: none; height: 52px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--accent);
   background: transparent; color: var(--accent); font-weight: 700; font-size: 19px; white-space: nowrap; }
 .add.on { background: var(--accent); color: var(--accent-fg); }
 .empty { padding: 20px 18px; color: var(--muted); }
@@ -116,7 +116,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .ttl { flex: 1; min-width: 0; font-size: 21px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ttl b { font-family: var(--num-font); color: #fff; margin-right: 10px; font-variant-numeric: tabular-nums; }
 .grip { flex: none; width: 52px; height: 52px; border: 0; background: transparent; color: var(--home-fg); font-size: 30px; touch-action: none; cursor: grab; }
-.tb { flex: none; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 10px; background: transparent; color: var(--home-fg); }
+.tb { flex: none; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 8px; background: transparent; color: var(--home-fg); }
 .tb:active { background: rgba(255,255,255,.15); }
 .tb:disabled { opacity: .3; }
 .tb.x svg { width: 34px; height: 34px; }
@@ -144,7 +144,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   display: flex; flex-direction: column; padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px calc(env(safe-area-inset-bottom, 0px) + 12px); gap: 10px; }
 .panel header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .panel h2 { margin: 0; font-size: 28px; }
-.close { height: 52px; padding: 0 20px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-weight: 700; }
+.close { height: 52px; padding: 0 20px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); font-weight: 700; }
 .items { flex: 1; overflow-y: auto; margin: 0; padding: 0; list-style: none; }
 .items li { display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--line); }
 .help { margin: 0; color: var(--muted); font-size: 17px; line-height: 1.4; }
@@ -153,11 +153,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .items li .open { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 14px; border: 0; background: transparent;
   text-align: left; padding: 16px 4px; font-size: 22px; }
 .items li.cur { background: var(--hit); }
-.mini { flex: none; width: 48px; height: 48px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); font-size: 20px; }
+.mini { flex: none; width: 48px; height: 48px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); font-size: 20px; }
 .mini.x { color: var(--danger); }
 .mini:disabled { opacity: .3; }
 .foot { display: flex; gap: 10px; flex-wrap: wrap; }
-.foot button { height: 52px; padding: 0 18px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-weight: 700; }
+.foot button { height: 52px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); font-weight: 700; }
 .foot .danger { color: var(--danger); }
 .foot .confirm { background: var(--danger); color: var(--surface); border-color: var(--danger); }
 .loading { color: var(--home-fg); padding: 24px; font-size: 22px; margin: auto; }
