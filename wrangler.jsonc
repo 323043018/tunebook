@@ -1,0 +1,19 @@
+// Cloudflare settings for the Band Tune Book. The app files at the top of the repo are served
+// only after gate/worker.js has checked that the iPad is approved.
+{
+  "name": "tunebook",
+  "main": "gate/worker.js",
+  "compatibility_date": "2025-09-01",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "REGISTRY", "class_name": "Registry" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Registry"] }],
+  "observability": { "enabled": true }
+}

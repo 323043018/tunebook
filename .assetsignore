@@ -1,0 +1,10 @@
+.git
+.github
+.wrangler
+.dev.vars
+node_modules
+gate
+wrangler.jsonc
+.assetsignore
+.nojekyll
+README.md
