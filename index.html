@@ -75,7 +75,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .pad .fn:active { background: rgba(255, 255, 255, .88); }
 .pad .go { background: var(--accent); color: #fff; font-size: 20px; font-weight: 500; }
 .pad .go:active { background: #3d000c; }
-.search.padopen .results { left: calc(var(--padw) + 16px); }
+.search.padopen .results, .search.nameopen .results { left: calc(var(--padw) + 16px); }
 #qn { caret-color: transparent; }
 .namebox { flex: 1; min-width: 0; position: relative; }
 /* Search boxes and Tune list button: white, thin grey borders, grey icon tiles (like a clean card UI) */
@@ -131,9 +131,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .box { margin: 0 auto; overflow: hidden; border-radius: 0 0 8px 8px; }
 .box img { display: block; width: 100%; height: 100%; max-width: none; filter: var(--music-filter); }
 .tbar { position: relative; height: 60px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 4px;
-  background: #f2f2f7; color: #000; border-bottom: .5px solid #c6c6c8; border-radius: 8px 8px 0 0; font-family: var(--key-font); }
-.ttl { flex: 1; min-width: 0; font-size: 21px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ttl b { font-family: var(--num-font); color: var(--accent); margin-right: 10px; font-variant-numeric: tabular-nums; }
+  background: #fff; color: #000; border-radius: 8px 8px 0 0; font-family: var(--key-font); }
+.ttl { flex: 1; min-width: 0; font-size: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ttl b { font-family: var(--key-font); font-size: 16px; font-weight: 600; color: var(--accent); background: var(--hit); border-radius: 999px; padding: 4px 12px; margin-right: 10px; font-variant-numeric: tabular-nums; }
 .grip { flex: none; width: 52px; height: 52px; border: 0; background: transparent; color: #8e8e93; font-size: 30px; touch-action: none; cursor: grab; }
 .tb { flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px;
   background: rgba(0,0,0,.06); color: #3c3c43; border: 0; box-shadow: none; -webkit-tap-highlight-color: transparent; }
@@ -333,7 +333,7 @@ function warmAll() {}
 function searchFocus() {
   const on = !$('pad').hidden || !results.hidden || document.activeElement === q;
   document.querySelector('.app').classList.toggle('searching', on);
-  if (on) document.querySelector('.app').classList.remove('barhidden');
+  if (typeof syncBar === 'function') syncBar();
 }
 document.addEventListener('focusin', () => setTimeout(searchFocus));
 document.addEventListener('focusout', () => setTimeout(searchFocus));
@@ -363,6 +363,7 @@ function search(raw) {
 function esc(s) { return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function renderResults() {
   const v = active.value.trim();
+  document.querySelector('.search').classList.toggle('nameopen', active === q);
   $('clear').hidden = !q.value.trim();
   if (!v) { results.hidden = true; return; }
   hits = search(v); sel = 0;
@@ -491,17 +492,16 @@ async function show(n) {
 }
 // Hide the top bar while scrolling down through music; bring it back when scrolling up or near the top.
 const app = document.querySelector('.app');
-let lastTop = 0, quietUntil = 0;
+// The full bar only shows at the top of the page (or while searching); elsewhere the Search button stands in for it.
 function showBar() { app.classList.remove('barhidden'); }
-stage.addEventListener('scroll', () => {
-  const t = stage.scrollTop, d = t - lastTop; lastTop = t;
-  if (Date.now() < quietUntil || drag || app.classList.contains('searching')) return;
-  if (t < 40 || d < -8) showBar(); else if (d > 8) app.classList.add('barhidden');
-}, { passive: true });
+function syncBar() {
+  if (app.classList.contains('searching')) { showBar(); return; }
+  app.classList.toggle('barhidden', !stage.hidden && stage.scrollTop > 40);
+}
+stage.addEventListener('scroll', syncBar, { passive: true });
 $('searchfab').addEventListener('click', () => { showBar(); qn.focus(); openPad(); });
 function scrollToTune(n, smooth) {
   const s = slots.get(n); if (!s) return;
-  quietUntil = Date.now() + (smooth ? 900 : 300);
   stage.scrollTo({ top: s.el.offsetTop - barSpace(), behavior: smooth ? 'smooth' : 'auto' });
 }
 async function openStack(n) {
@@ -527,7 +527,7 @@ function refresh(keep) {
   });
 }
 function goHome(forget) {
-  stage.hidden = true; cur = null; showBar();
+  stage.hidden = true; cur = null; syncBar();
   if (forget) { try { localStorage.removeItem('last'); } catch (e) {} }
 }
 // Bar buttons: move up, move down, remove (tap ✕ twice).
