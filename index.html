@@ -254,6 +254,12 @@ html, body, button, input, .stage, .tune { touch-action: manipulation; }
   box-shadow: 0 2px 6px rgba(0,0,0,.2); transition: transform .2s ease; }
 .switchrow input:checked { background: #34c759; }
 .switchrow input:checked::after { transform: translateX(20px); }
+
+/* One-time note when the saved tune book is an older copy. */
+.update { position: absolute; z-index: 8; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 20px; border-radius: 32px; max-width: calc(100% - 32px); box-sizing: border-box;
+  background: rgba(255,255,255,.96); box-shadow: 0 10px 30px rgba(0,0,0,.3); font-family: var(--key-font); font-size: 18px; color: #000; }
+.update #updatepick { flex: none; height: 44px; padding: 0 18px; border: 0; border-radius: 22px; background: var(--accent); color: #fff; font: inherit; font-weight: 500; }
 .stage { padding-bottom: env(safe-area-inset-bottom, 0px); }
 </style>
 </head>
@@ -285,6 +291,7 @@ html, body, button, input, .stage, .tune { touch-action: manipulation; }
       <span class="lbl">Tune list</span><span id="count" class="count">0</span>
     </button>
   </div>
+  <div id="update" class="update" hidden><span>A corrected tune book file is ready.</span><button id="updatepick" type="button">Choose file</button><button id="updatex" class="rm" type="button" aria-label="Not now"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <button id="searchfab" class="fab" type="button" aria-label="Search"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></span>Search</button>
   <div class="main">
     <div class="home" id="hint">
@@ -697,6 +704,13 @@ document.addEventListener('pointerdown', () => { if (!lock) wake(); }, { once: t
 /* ---------- start: use the tune book saved on this iPad, or ask for the PDF once ---------- */
 const hint = $('homemsg');
 const FILENAME = 'Band Tune Book - 2nd Cornet.pdf';
+const BOOK = 'tunebook-2';   // the corrected file carries this in its Subject
+// An older copy of the tune book is saved on this iPad: offer the corrected file once per visit.
+async function checkBook() {
+  let sub = '';
+  try { sub = ((await PDF.getMetadata()).info || {}).Subject || ''; } catch (e) {}
+  $('update').hidden = sub === BOOK;
+}
 function askForFile(msg) {
   goHome(false);
   hint.innerHTML = '<strong>Load your tune book</strong><br>Choose the file <strong>' + FILENAME + '</strong> from Files. ' +
@@ -707,6 +721,7 @@ function askForFile(msg) {
 }
 $('file').addEventListener('change', async () => {
   const f = $('file').files[0]; if (!f) return;
+  const PDF_WAS_OPEN = !!PDF;
   hint.innerHTML = 'Loading the tune book…';
   try {
     const buf = await f.arrayBuffer();
@@ -714,6 +729,8 @@ $('file').addEventListener('change', async () => {
     const ok = await idbPut('book', buf);
     $('file').value = '';
     hint.innerHTML = ok ? '' : 'This browser would not save the tune book, so you may need to load it again next time.';
+    if (ok && PDF_WAS_OPEN) { location.reload(); return; }
+    checkBook();
     $('sheet').hidden = true;
   } catch (e) {
     askForFile('That file is not the tune book. Choose “' + FILENAME + '”.');
@@ -725,9 +742,12 @@ if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').ca
   try { buf = await idbGet('book'); } catch (e) {}
   if (!buf) { askForFile(''); return; }
   try { await openBook(buf); } catch (e) { askForFile(''); return; }
+  checkBook();
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   try { const last = JSON.parse(localStorage.getItem('last') || 'null'); if (last && inList(last[0])) openStack(last[0]); } catch (e) {}
 })();
+$('updatepick').onclick = () => $('file').click();
+$('updatex').onclick = () => { $('update').hidden = true; };
 </script>
 </body>
 </html>
