@@ -128,13 +128,13 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 @media (prefers-reduced-motion: reduce) { .veil { transition: none; } }
 .stage { position: absolute; inset: 0; display: block;
   background: transparent; overflow: auto; -webkit-overflow-scrolling: touch; }
-.stack { display: flex; flex-direction: column; gap: 20px; padding: var(--barspace) 16px 32px; }
+.stack { display: flex; flex-direction: column; gap: 20px; padding: var(--barspace) 0 32px; }
 /* Each tune is a white card; its header stays pinned at the top while you scroll through it. */
-.tune { flex: none; background: var(--paper); border-radius: 30px; box-shadow: 0 4px 18px rgba(0, 0, 0, .25); }
-.box { margin: 0 auto; overflow: hidden; border-radius: 0 0 30px 30px; }
+.tune { flex: none; background: var(--paper); border-radius: 0; box-shadow: 0 4px 18px rgba(0, 0, 0, .25); }
+.box { margin: 0 auto; overflow: hidden; border-radius: 0; }
 .box img { display: block; width: 100%; height: 100%; max-width: none; filter: var(--music-filter); }
 .tbar { position: relative; height: 64px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 10px;
-  background: #fff; color: #000; border-radius: 30px 30px 0 0; font-family: var(--key-font); }
+  background: #fff; color: #000; border-radius: 0; font-family: var(--key-font); }
 .ttl { flex: 1; min-width: 0; display: flex; align-items: center; font-size: 19px; white-space: nowrap; }
 .ttl span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ttl b { flex: none; line-height: 1.3; font-family: var(--key-font); font-size: 16px; font-weight: 600; color: var(--accent); background: var(--hit); border-radius: 999px; padding: 4px 12px; margin-right: 10px; font-variant-numeric: tabular-nums; }
@@ -478,7 +478,7 @@ function slot(n) {
 // Each tune fills the screen: the whole tune when it fits reasonably, else the full width.
 function size(s) {
   if (!s.w) return;
-  const W = stage.clientWidth - 32, H = stage.clientHeight - BAR - barSpace() - 16;
+  const W = stage.clientWidth, H = stage.clientHeight - BAR - barSpace() - 16;
   const sw = W / s.w, sh = H / s.h;
   const k = Math.min(sw, sh) >= 0.7 * sw ? Math.min(sw, sh) : sw;
   s.box.style.width = Math.floor(s.w * k) + 'px'; s.box.style.height = Math.floor(s.h * k) + 'px';
