@@ -237,6 +237,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .clearrow { background: rgba(0,0,0,.06); }
 .items li.dragging { background: rgba(255,255,255,.95); }
 @media (prefers-reduced-motion: reduce) { .pad, .results, .panel, .fab { animation: none; } }
+
+/* No double-tap zoom anywhere (pinch zoom still works). */
+html, body, button, input, .stage, .tune { touch-action: manipulation; }
+.grip { touch-action: none; }
 .stage { padding-bottom: env(safe-area-inset-bottom, 0px); }
 </style>
 </head>
