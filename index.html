@@ -184,9 +184,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .items li { display: flex; align-items: center; gap: 4px; padding-right: 12px; min-height: 60px; position: relative; background: #fff; }
 .items li + li::before { content: ""; position: absolute; top: 0; left: 52px; right: 0; border-top: .5px solid #c6c6c8; }
 .items .grip { width: 48px; height: 48px; font-size: 26px; color: #8e8e93; }
-.items li .open { flex: 1; min-width: 0; display: grid; grid-template-columns: 3em 1fr; align-items: baseline; column-gap: 8px; border: 0; background: transparent;
+.items li .open { flex: 1; min-width: 0; display: grid; grid-template-columns: 3.4em 1fr; align-items: center; column-gap: 8px; border: 0; background: transparent;
   text-align: left; padding: 14px 4px; font-family: inherit; font-size: 20px; line-height: 1.3; color: #000; }
-.items .num { font-family: var(--key-font); font-weight: 600; min-width: 0; text-align: left; font-variant-numeric: tabular-nums; }
+.items .num { justify-self: start; font-family: var(--key-font); font-size: 16px; font-weight: 600; line-height: 1.3; color: var(--accent); background: var(--hit); border-radius: 999px;
+  padding: 3px 12px; min-width: 2.2em; text-align: center; font-variant-numeric: tabular-nums; }
 .items li.cur { background: #f6e6e8; }
 .items li.dragging { z-index: 2; box-shadow: 0 6px 20px rgba(0,0,0,.2); border-radius: 12px; }
 .items li.dragging::before { display: none; }
