@@ -48,10 +48,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .app { position: fixed; inset: 0; display: flex; flex-direction: column; }
 
 /* Search bar */
-.bar { display: flex; gap: 10px; align-items: center; padding: 10px 16px; position: relative; z-index: 4;
+.bar { display: flex; gap: 16px; align-items: center; padding: 16px 24px; position: relative; z-index: 4;
   background: #fff; border-bottom: .5px solid #c6c6c8; }
-.search { flex: 1; min-width: 0; position: relative; display: flex; gap: 10px; }
-.pad { position: absolute; left: 0; top: 100%; margin-top: 8px; z-index: 6; display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; width: var(--padw); box-sizing: border-box;
+.search { flex: 1; min-width: 0; position: relative; display: flex; gap: 16px; }
+.pad { position: absolute; left: 0; top: 100%; margin-top: 12px; z-index: 6; display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; width: var(--padw); box-sizing: border-box;
   padding: 8px; border-radius: 16px; background: rgba(206, 210, 217, .72); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
   border: .5px solid rgba(255, 255, 255, .5); box-shadow: 0 10px 40px rgba(0, 0, 0, .25);
   font-family: var(--key-font); -webkit-user-select: none; user-select: none; }
@@ -64,7 +64,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .pad .fn:active { background: rgba(255, 255, 255, .88); }
 .pad .go { background: var(--accent); color: #fff; font-size: 20px; font-weight: 500; }
 .pad .go:active { background: #3d000c; }
-.search.padopen .results { left: calc(var(--padw) + 10px); }
+.search.padopen .results { left: calc(var(--padw) + 16px); }
 #qn { caret-color: transparent; }
 .namebox { flex: 1; min-width: 0; position: relative; }
 /* Search boxes and Tune list button: white, thin grey borders, grey icon tiles (like a clean card UI) */
@@ -90,7 +90,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   color: var(--accent); font-variant-numeric: tabular-nums; text-align: center; }
 
 /* Results dropdown */
-.results { position: absolute; left: 0; right: 0; top: 100%; margin-top: 8px; z-index: 5;
+.results { position: absolute; left: 0; right: 0; top: 100%; margin-top: 12px; z-index: 5;
   background: #fff; border: 1px solid #e3e3e3; border-radius: 8px; font-family: var(--key-font); color: #1f1f1f;
   max-height: min(70vh, 640px); overflow-y: auto; box-shadow: 0 8px 28px rgba(0,0,0,.10); }
 .row { display: flex; align-items: center; gap: 14px; padding: 6px 8px 6px 16px; border-top: 1px solid #ececec; }
@@ -142,7 +142,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .homemsg:empty { display: none; }
 .homemsg strong, .homemsg span { color: #fff !important; }
 .homemsg .add.on { background: var(--home-fg); color: var(--accent); border-color: var(--home-fg); }
-.part { position: absolute; right: 32px; bottom: 32px; line-height: 1; font-size: 16px; color: var(--home-fg); letter-spacing: .02em; }
+.part { position: absolute; right: 44px; bottom: 32px; line-height: 1; font-size: 16px; color: var(--home-fg); letter-spacing: .02em; }
 .hint { margin: auto; padding: 24px 16px; max-width: 34em; text-align: center; color: var(--muted); font-size: 22px; line-height: 1.5; }
 .hint strong { color: var(--fg); }
 
@@ -179,7 +179,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   .row .open { font-size: 20px; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
-.bar { padding-top: calc(10px + env(safe-area-inset-top, 0px)); padding-left: calc(16px + env(safe-area-inset-left, 0px)); padding-right: calc(16px + env(safe-area-inset-right, 0px)); }
+.bar { padding-top: calc(16px + env(safe-area-inset-top, 0px)); padding-left: calc(24px + env(safe-area-inset-left, 0px)); padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
 .stage { padding-bottom: env(safe-area-inset-bottom, 0px); }
 </style>
 </head>
@@ -190,7 +190,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
       <div class="numbox">
       <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 4L7 20M17 4l-2 16M4 9h16M3.5 15h16"/></svg></span>
       <input id="qn" type="text" inputmode="none" readonly autocomplete="off"
-        maxlength="3" placeholder="Number" aria-label="Tune number">
+        maxlength="3" placeholder="Tune Number" aria-label="Tune number">
       </div>
       <div id="pad" class="pad" hidden>
         <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
