@@ -97,21 +97,23 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .empty { padding: 20px 18px; color: var(--muted); }
 
 /* Tune view */
-.tunebar { display: flex; align-items: center; gap: 12px; padding: 6px 16px; min-height: 52px; background: var(--surface); border-bottom: 1px solid var(--line); }
-.closetune { flex: none; height: 52px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; font-size: 19px; }
-.tunebar .title { flex: 1; min-width: 0; font-size: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tunebar .title b { font-family: var(--num-font); color: var(--accent); margin-right: 10px; font-variant-numeric: tabular-nums; }
-.nav { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; color: var(--muted); }
-.nav button { height: 48px; min-width: 64px; border-radius: 12px; border: 1px solid var(--line);
-  background: var(--surface); font-weight: 700; font-size: 20px; }
-.nav button:disabled { opacity: .35; }
 .main { flex: 1; min-height: 0; position: relative; }
 .stage { position: absolute; inset: 0; display: block;
   background: transparent; overflow: auto; -webkit-overflow-scrolling: touch; }
-.stack { display: flex; flex-direction: column; align-items: center; gap: 40px; padding-bottom: 40px; }
-.tune { flex: none; background: var(--paper); }
-.tune img { display: block; width: 100%; height: 100%; max-width: none; filter: var(--music-filter); }
-.tunebar .add.confirm { background: var(--accent); color: var(--accent-fg); }
+.stack { display: flex; flex-direction: column; }
+.tune { flex: none; background: var(--paper); border-top: 4px solid var(--accent); }
+.tune:first-child { border-top: 0; }
+.box { margin: 0 auto; }
+.box img { display: block; width: 100%; height: 100%; max-width: none; filter: var(--music-filter); }
+.tbar { height: 60px; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 0 12px 0 4px;
+  background: var(--surface); border-bottom: 1px solid var(--line); }
+.ttl { flex: 1; min-width: 0; font-size: 21px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ttl b { font-family: var(--num-font); color: var(--accent); margin-right: 10px; font-variant-numeric: tabular-nums; }
+.grip { flex: none; width: 52px; height: 52px; border: 0; background: transparent; color: var(--muted); font-size: 30px; touch-action: none; cursor: grab; }
+.tbar .mini.confirm { width: auto; padding: 0 12px; background: var(--danger); color: #fff; border-color: var(--danger); font-size: 17px; font-weight: 700; }
+.reordering .box { display: none; }
+.reordering .tune { border-top-width: 1px; }
+.tune.dragging { position: relative; z-index: 3; box-shadow: 0 8px 28px rgba(0,0,0,.3); }
 .divider { display: flex; align-items: baseline; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 18px; color: var(--muted); }
 .divider b { font-family: var(--num-font); color: var(--accent); font-variant-numeric: tabular-nums; }
 .home { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
@@ -122,7 +124,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .homemsg:empty { display: none; }
 .homemsg strong, .homemsg span { color: #fff !important; }
 .homemsg .add.on { background: var(--home-fg); color: var(--accent); border-color: var(--home-fg); }
-.part { position: absolute; right: 20px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); font-size: 16px; color: var(--home-fg); letter-spacing: .02em; }
+.part { position: absolute; right: 20px; bottom: 20px; line-height: 1; font-size: 16px; color: var(--home-fg); letter-spacing: .02em; }
 .hint { margin: auto; padding: 24px 16px; max-width: 34em; text-align: center; color: var(--muted); font-size: 22px; line-height: 1.5; }
 .hint strong { color: var(--fg); }
 
@@ -182,16 +184,6 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
     <button id="listbtn" class="listbtn" type="button" aria-label="Tune list">
       <span class="lbl">Tune list</span><span id="count" class="count">0</span>
     </button>
-  </div>
-  <div id="tunebar" class="tunebar" hidden>
-    <div id="title" class="title"></div>
-    <div id="nav" class="nav">
-      <button id="prev" type="button" aria-label="Previous in tune list">‹</button>
-      <span id="pos"></span>
-      <button id="next" type="button" aria-label="Next in tune list">›</button>
-    </div>
-    <button id="addcur" class="add" type="button"></button>
-    <button id="closetune" class="closetune" type="button" aria-label="Close this tune">✕ Close</button>
   </div>
   <div class="main">
     <div class="home" id="hint">
@@ -353,14 +345,22 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('.search')
 
 /* ---------- the tune list: every tune in the list, one after another, in one scrolling page ---------- */
 const stack = $('stack');
-const slots = new Map();   // tune number -> { el, im, w, h, ready }
+const slots = new Map();   // tune number -> { el, box, im, w, h, ready }
+const BAR = 60;            // height of the bar above each tune
 let cur = null;
 function slot(n) {
   let s = slots.get(n);
   if (!s) {
-    const el = document.createElement('div'); el.className = 'tune'; el.dataset.n = n;
-    const im = document.createElement('img'); im.alt = 'Music for ' + n + ' ' + byNo.get(n); el.appendChild(im);
-    s = { n, el, im, w: 0, h: 0, loaded: false, loading: false };
+    const el = document.createElement('section'); el.className = 'tune'; el.dataset.n = n;
+    el.innerHTML = '<div class="tbar"><button class="grip" type="button" aria-label="Drag to reorder">≡</button>' +
+      '<div class="ttl"><b>' + n + '</b>' + esc(byNo.get(n)) + '</div>' +
+      '<button class="mini" type="button" data-mv="-1" aria-label="Move up">↑</button>' +
+      '<button class="mini" type="button" data-mv="1" aria-label="Move down">↓</button>' +
+      '<button class="mini x" type="button" data-rm aria-label="Remove from list">✕</button></div>' +
+      '<div class="box"><img alt=""></div>';
+    const box = el.querySelector('.box'), im = el.querySelector('img');
+    im.alt = 'Music for ' + n + ' ' + byNo.get(n);
+    s = { n, el, box, im, w: 0, h: 0, loaded: false, loading: false };
     s.ready = sizeFor(n).then(([w, h]) => { s.w = w; s.h = h; size(s); }).catch(() => {});
     slots.set(n, s);
   }
@@ -369,14 +369,19 @@ function slot(n) {
 // Each tune fills the screen: the whole tune when it fits reasonably, else the full width.
 function size(s) {
   if (!s.w) return;
-  const W = stage.clientWidth, H = stage.clientHeight;
+  const W = stage.clientWidth, H = stage.clientHeight - BAR;
   const sw = W / s.w, sh = H / s.h;
   const k = Math.min(sw, sh) >= 0.7 * sw ? Math.min(sw, sh) : sw;
-  s.el.style.width = Math.floor(s.w * k) + 'px'; s.el.style.height = Math.floor(s.h * k) + 'px';
+  s.box.style.width = Math.floor(s.w * k) + 'px'; s.box.style.height = Math.floor(s.h * k) + 'px';
 }
 function renderStack() {
   for (const [n, s] of slots) if (!list.includes(n)) { s.el.remove(); s.im.removeAttribute('src'); slots.delete(n); }
-  list.forEach((n, i) => { const el = slot(n).el; if (stack.children[i] !== el) stack.insertBefore(el, stack.children[i] || null); });
+  list.forEach((n, i) => {
+    const s = slot(n);
+    if (stack.children[i] !== s.el) stack.insertBefore(s.el, stack.children[i] || null);
+    s.el.querySelector('[data-mv="-1"]').disabled = i === 0;
+    s.el.querySelector('[data-mv="1"]').disabled = i === list.length - 1;
+  });
 }
 // Only draw the tunes near the screen, so a long list stays light on the iPad's memory.
 async function load(s) {
@@ -385,6 +390,7 @@ async function load(s) {
   s.loading = false;
 }
 function lazy() {
+  if (stack.classList.contains('reordering')) return;
   const H = stage.clientHeight, top = stage.getBoundingClientRect().top;
   for (const s of slots.values()) {
     const r = s.el.getBoundingClientRect(), y = r.top - top;
@@ -400,16 +406,8 @@ function updateCur() {
   let n = list[0];
   for (const m of list) { const s = slots.get(m); if (s && s.el.getBoundingClientRect().top <= top) n = m; }
   if (n !== cur) { cur = n; try { localStorage.setItem('last', JSON.stringify([n, true])); } catch (e) {} }
-  refreshCur();
 }
-function refreshCur() {
-  if (cur == null) return;
-  $('title').innerHTML = '<b>' + cur + '</b>' + esc(byNo.get(cur));
-  const i = list.indexOf(cur);
-  $('pos').textContent = (i + 1) + ' of ' + list.length;
-  $('prev').disabled = i <= 0; $('next').disabled = i < 0 || i === list.length - 1;
-  const b = $('addcur'); if (!b.classList.contains('confirm')) b.textContent = 'Remove';
-}
+function refreshCur() {}
 let scrolling = false;
 stage.addEventListener('scroll', () => { if (!scrolling) { scrolling = true; requestAnimationFrame(() => { scrolling = false; lazy(); }); } }, { passive: true });
 // Open a tune: it joins the tune list (if it isn't there yet) and the page scrolls to it.
@@ -418,19 +416,24 @@ async function show(n) {
   if (!inList(n)) { list.push(n); saveList(); }
   await openStack(n);
 }
+function scrollToTune(n, smooth) {
+  const s = slots.get(n); if (!s) return;
+  stage.scrollTo({ top: s.el.offsetTop, behavior: smooth ? 'smooth' : 'auto' });
+}
 async function openStack(n) {
-  stage.hidden = false; $('tunebar').hidden = false;
+  stage.hidden = false;
   renderStack();
   await Promise.all(list.map(m => slot(m).ready));
   slots.forEach(size);
-  const s = slots.get(n); if (!s) return;
-  stage.scrollTop = s.el.offsetTop;
+  scrollToTune(n);
   cur = null; lazy();
 }
-function refresh() {
-  if (!list.length) { goHome(false); return; }
+// After the list changes, keep the page steady on the tune named in keep.
+function refresh(keep) {
+  if (!list.length) { goHome(true); return; }
   if (stage.hidden) return;
-  const keep = cur, s = slots.get(keep), off = s ? s.el.getBoundingClientRect().top : 0;
+  if (keep === undefined) keep = cur;
+  const s = slots.get(keep), off = s ? s.el.getBoundingClientRect().top : 0;
   renderStack();
   Promise.all(list.map(m => slot(m).ready)).then(() => {
     slots.forEach(size);
@@ -440,35 +443,73 @@ function refresh() {
   });
 }
 function goHome(forget) {
-  stage.hidden = true; $('tunebar').hidden = true; cur = null;
+  stage.hidden = true; cur = null;
   if (forget) { try { localStorage.removeItem('last'); } catch (e) {} }
 }
-$('closetune').addEventListener('click', () => goHome(true));
-let rmTimer = null;
-$('addcur').addEventListener('click', () => {
-  const b = $('addcur');
-  if (!b.classList.contains('confirm')) { b.classList.add('confirm'); b.textContent = 'Tap again to remove'; clearTimeout(rmTimer);
-    rmTimer = setTimeout(() => { b.classList.remove('confirm'); refreshCur(); }, 3000); return; }
-  clearTimeout(rmTimer); b.classList.remove('confirm');
-  const i = list.indexOf(cur); if (i < 0) return;
-  list.splice(i, 1); saveList();
-  if (!list.length) { goHome(true); return; }
-  cur = list[Math.min(i, list.length - 1)];
-  refresh();
+// Bar buttons: move up, move down, remove (tap ✕ twice).
+stack.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  const el = t.closest('.tune'), n = +el.dataset.n, i = list.indexOf(n);
+  if (t.dataset.mv) {
+    const j = i + +t.dataset.mv; if (j < 0 || j >= list.length) return;
+    [list[i], list[j]] = [list[j], list[i]]; saveList(); renderStack(); scrollToTune(n); lazy();
+  } else if (t.hasAttribute('data-rm')) {
+    if (!t.classList.contains('confirm')) { t.classList.add('confirm'); t.textContent = 'Remove';
+      setTimeout(() => { t.classList.remove('confirm'); t.textContent = '✕'; }, 3000); return; }
+    list.splice(i, 1); saveList();
+    refresh(list[Math.min(i, list.length - 1)]);
+  }
 });
+// Drag the ≡ handle to reorder. While dragging, the tunes fold down to their bars like a list.
+let drag = null;
+stack.addEventListener('pointerdown', e => {
+  const g = e.target.closest('.grip'); if (!g) return;
+  e.preventDefault();
+  const el = g.closest('.tune');
+  g.setPointerCapture(e.pointerId);
+  stack.classList.add('reordering'); el.classList.add('dragging');
+  const r = el.getBoundingClientRect();
+  stage.scrollTop += r.top - (e.clientY - BAR / 2);
+  drag = { el, g, grab: BAR / 2, y: e.clientY, raf: 0 };
+  moveDrag(e.clientY);
+  const edge = () => {
+    if (!drag) return;
+    const sr = stage.getBoundingClientRect();
+    if (drag.y < sr.top + 70) stage.scrollTop -= 14; else if (drag.y > sr.bottom - 70) stage.scrollTop += 14;
+    moveDrag(drag.y); drag.raf = requestAnimationFrame(edge);
+  };
+  drag.raf = requestAnimationFrame(edge);
+});
+function moveDrag(y) {
+  const el = drag.el;
+  el.style.transform = '';
+  const sibs = [...stack.children].filter(x => x !== el);
+  let k = sibs.findIndex(x => { const r = x.getBoundingClientRect(); return y < r.top + r.height / 2; });
+  if (k < 0) k = sibs.length;
+  if (stack.children[k] !== el || (k === sibs.length && stack.lastElementChild !== el)) stack.insertBefore(el, sibs[k] || null);
+  el.style.transform = 'translateY(' + (y - drag.grab - el.getBoundingClientRect().top) + 'px)';
+}
+stack.addEventListener('pointermove', e => { if (drag) { drag.y = e.clientY; moveDrag(e.clientY); } });
+function endDrag() {
+  if (!drag) return;
+  const el = drag.el; cancelAnimationFrame(drag.raf); drag = null;
+  el.style.transform = ''; el.classList.remove('dragging'); stack.classList.remove('reordering');
+  list = [...stack.children].map(x => +x.dataset.n); saveList(); renderStack();
+  scrollToTune(+el.dataset.n); lazy();
+}
+stack.addEventListener('pointerup', endDrag);
+stack.addEventListener('pointercancel', endDrag);
 function step(d) {
   const i = list.indexOf(cur), j = i + d;
   if (stage.hidden || i < 0 || j < 0 || j >= list.length) return;
-  stage.scrollTo({ top: slots.get(list[j]).el.offsetTop, behavior: 'smooth' });
+  scrollToTune(list[j], true);
 }
-$('prev').addEventListener('click', () => step(-1));
-$('next').addEventListener('click', () => step(1));
 document.addEventListener('keydown', e => { if (document.activeElement === q || document.activeElement === qn) return; if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); });
 let sx = null, sy = null;
 stage.addEventListener('touchstart', e => { if (e.touches.length === 1) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; } }, { passive: true });
-stage.addEventListener('touchend', e => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
+stage.addEventListener('touchend', e => { if (sx == null || drag) return; const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
   if (Math.abs(dx) > 80 && Math.abs(dx) > 2 * Math.abs(dy)) step(dx < 0 ? 1 : -1); }, { passive: true });
-addEventListener('resize', () => { if (!stage.hidden && cur != null) { const n = cur; slots.forEach(size); stage.scrollTop = slots.get(n).el.offsetTop; lazy(); } });
+addEventListener('resize', () => { if (!stage.hidden && cur != null) { const n = cur; slots.forEach(size); scrollToTune(n); lazy(); } });
 
 /* ---------- tune list sheet ---------- */
 function renderList() {
