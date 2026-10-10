@@ -124,11 +124,16 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .ttl { flex: 1; min-width: 0; font-size: 21px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ttl b { font-family: var(--num-font); color: #fff; margin-right: 10px; font-variant-numeric: tabular-nums; }
 .grip { flex: none; width: 52px; height: 52px; border: 0; background: transparent; color: var(--home-fg); font-size: 30px; touch-action: none; cursor: grab; }
-.tb { flex: none; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 8px; background: transparent; color: var(--home-fg); }
-.tb:active { background: rgba(255,255,255,.15); }
-.tb:disabled { opacity: .3; }
-.tb.x svg { width: 34px; height: 34px; }
-.tb.confirm { width: auto; padding: 0 14px; background: var(--home-fg); color: var(--accent); font-size: 18px; font-weight: 700; }
+.tb { flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.08)); color: #fff;
+  border: .5px solid rgba(255,255,255,.35); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 1px 3px rgba(0,0,0,.2);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); -webkit-tap-highlight-color: transparent; }
+.tb svg { width: 22px; height: 22px; }
+.tb:active { background: rgba(255,255,255,.3); }
+.tb:disabled { opacity: .35; }
+.tb.confirm { width: auto; padding: 0 18px; background: #fff; color: var(--accent); border-color: #fff;
+  font-family: var(--key-font); font-size: 17px; font-weight: 500; }
+.tbar { gap: 10px; }
 .reordering .box { display: none; }
 .reordering .tune { border-top-width: 1px; }
 .tune.dragging { position: relative; z-index: 3; box-shadow: 0 8px 28px rgba(0,0,0,.3); }
@@ -392,9 +397,9 @@ function slot(n) {
     const el = document.createElement('section'); el.className = 'tune'; el.dataset.n = n;
     el.innerHTML = '<div class="tbar"><button class="grip" type="button" aria-label="Drag to reorder">≡</button>' +
       '<div class="ttl"><b>' + n + '</b>' + esc(byNo.get(n)) + '</div>' +
-      '<button class="tb" type="button" data-mv="-1" aria-label="Move up"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15l7-7 7 7"/></svg></button>' +
-      '<button class="tb" type="button" data-mv="1" aria-label="Move down"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg></button>' +
-      '<button class="tb x" type="button" data-rm aria-label="Remove from list"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+      '<button class="tb" type="button" data-mv="-1" aria-label="Move up"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15l7-7 7 7"/></svg></button>' +
+      '<button class="tb" type="button" data-mv="1" aria-label="Move down"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg></button>' +
+      '<button class="tb x" type="button" data-rm aria-label="Remove from list"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
       '<div class="box"><img alt=""></div>';
     const box = el.querySelector('.box'), im = el.querySelector('img');
     im.alt = 'Music for ' + n + ' ' + byNo.get(n);
@@ -493,7 +498,7 @@ stack.addEventListener('click', e => {
     [list[i], list[j]] = [list[j], list[i]]; saveList(); renderStack(); scrollToTune(n); lazy();
   } else if (t.hasAttribute('data-rm')) {
     if (!t.classList.contains('confirm')) { t.classList.add('confirm'); t.textContent = 'Remove';
-      setTimeout(() => { t.classList.remove('confirm'); t.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'; }, 3000); return; }
+      setTimeout(() => { t.classList.remove('confirm'); t.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'; }, 3000); return; }
     list.splice(i, 1); saveList();
     refresh(list[Math.min(i, list.length - 1)]);
   }
