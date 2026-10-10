@@ -33,6 +33,7 @@
   --paper: #ffffff;
   --music-filter: none;
   --padw: 300px;
+  --barspace: calc(108px + env(safe-area-inset-top, 0px));   /* room the floating top bar covers */
   --key-font: -apple-system, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
   --font: "Libre Franklin", "Helvetica Neue", Arial, system-ui, sans-serif;
   --num-font: "Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
@@ -48,8 +49,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .app { position: fixed; inset: 0; display: flex; flex-direction: column; }
 
 /* Search bar */
-.bar { display: flex; gap: 16px; align-items: center; padding: 16px 24px; position: relative; z-index: 4;
-  background: #fff; border-bottom: .5px solid #c6c6c8; }
+.bar { display: flex; gap: 16px; align-items: center; padding: 12px; position: absolute; z-index: 6;
+  top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(16px + env(safe-area-inset-left, 0px)); right: calc(16px + env(safe-area-inset-right, 0px));
+  background: #fff; border-radius: 42px; box-shadow: 0 8px 30px rgba(0, 0, 0, .22); }
 .search { flex: 1; min-width: 0; position: relative; display: flex; gap: 16px; }
 .pad { position: absolute; left: 0; top: 100%; margin-top: 12px; z-index: 6; display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; width: var(--padw); box-sizing: border-box;
   padding: 8px; border-radius: 16px; background: rgba(206, 210, 217, .72); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
@@ -106,7 +108,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .empty { padding: 20px 18px; color: var(--muted); }
 
 /* Tune view */
-.main { flex: 1; min-height: 0; position: relative; }
+.main { position: absolute; inset: 0; }
 /* While searching, the page behind softly blurs so the search stands out. */
 .veil { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; background: rgba(0, 0, 0, .12);
   -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); transition: opacity .3s ease; }
@@ -114,13 +116,13 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 @media (prefers-reduced-motion: reduce) { .veil { transition: none; } }
 .stage { position: absolute; inset: 0; display: block;
   background: transparent; overflow: auto; -webkit-overflow-scrolling: touch; }
-.stack { display: flex; flex-direction: column; gap: 16px; padding: 16px 16px 32px; }
+.stack { display: flex; flex-direction: column; gap: 16px; padding: var(--barspace) 16px 32px; }
 /* Each tune is a white card; its header stays pinned at the top while you scroll through it. */
-.tune { flex: none; background: var(--paper); border-radius: 14px; box-shadow: 0 4px 18px rgba(0, 0, 0, .25); }
-.box { margin: 0 auto; overflow: hidden; border-radius: 0 0 14px 14px; }
+.tune { flex: none; background: var(--paper); border-radius: 8px; box-shadow: 0 4px 18px rgba(0, 0, 0, .25); }
+.box { margin: 0 auto; overflow: hidden; border-radius: 0 0 8px 8px; }
 .box img { display: block; width: 100%; height: 100%; max-width: none; filter: var(--music-filter); }
-.tbar { position: sticky; top: 0; z-index: 2; height: 60px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 4px;
-  background: #f2f2f7; color: #000; border-bottom: .5px solid #c6c6c8; border-radius: 14px 14px 0 0; font-family: var(--key-font); }
+.tbar { position: sticky; top: calc(var(--barspace) - 4px); z-index: 2; height: 60px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 4px;
+  background: #f2f2f7; color: #000; border-bottom: .5px solid #c6c6c8; border-radius: 8px 8px 0 0; font-family: var(--key-font); }
 .ttl { flex: 1; min-width: 0; font-size: 21px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ttl b { font-family: var(--num-font); color: var(--accent); margin-right: 10px; font-variant-numeric: tabular-nums; }
 .grip { flex: none; width: 52px; height: 52px; border: 0; background: transparent; color: #8e8e93; font-size: 30px; touch-action: none; cursor: grab; }
@@ -133,11 +135,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   font-family: var(--key-font); font-size: 17px; font-weight: 500; }
 .tbar { gap: 10px; }
 .reordering .box { display: none; }
-.reordering .tbar { border-radius: 14px; border-bottom: 0; }
+.reordering .tbar { border-radius: 8px; border-bottom: 0; }
 .tune.dragging { position: relative; z-index: 3; box-shadow: 0 8px 28px rgba(0,0,0,.3); }
 .divider { display: flex; align-items: baseline; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 18px; color: var(--muted); }
 .divider b { font-family: var(--num-font); color: var(--accent); font-variant-numeric: tabular-nums; }
-.home { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+.home { position: absolute; inset: 0; padding-top: var(--barspace) !important; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 28px; padding: 24px 16px 56px; background: var(--accent); color: var(--home-fg); text-align: center; }
 .home-title { margin: 0; font-weight: 700; font-size: clamp(20px, 2.8vw, 30px); line-height: 1.25; letter-spacing: .04em; text-wrap: balance; }
 .home .crest { width: auto; height: min(30vh, 260px); max-width: 60%; object-fit: contain; filter: invert(1) brightness(.85); }
@@ -193,7 +195,6 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   .row .open { font-size: 20px; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
-.bar { padding-top: calc(16px + env(safe-area-inset-top, 0px)); padding-left: calc(24px + env(safe-area-inset-left, 0px)); padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
 .stage { padding-bottom: env(safe-area-inset-bottom, 0px); }
 </style>
 </head>
@@ -405,6 +406,7 @@ const stack = $('stack');
 const slots = new Map();   // tune number -> { el, box, im, w, h, ready }
 const BAR = 60;            // height of the bar above each tune
 let cur = null;
+function barSpace() { return parseFloat(getComputedStyle(stack).paddingTop) || 0; }
 function slot(n) {
   let s = slots.get(n);
   if (!s) {
@@ -426,7 +428,7 @@ function slot(n) {
 // Each tune fills the screen: the whole tune when it fits reasonably, else the full width.
 function size(s) {
   if (!s.w) return;
-  const W = stage.clientWidth - 32, H = stage.clientHeight - BAR - 32;
+  const W = stage.clientWidth - 32, H = stage.clientHeight - BAR - barSpace() - 16;
   const sw = W / s.w, sh = H / s.h;
   const k = Math.min(sw, sh) >= 0.7 * sw ? Math.min(sw, sh) : sw;
   s.box.style.width = Math.floor(s.w * k) + 'px'; s.box.style.height = Math.floor(s.h * k) + 'px';
@@ -459,7 +461,7 @@ function lazy() {
 // The tune at the top of the screen is the current one.
 function updateCur() {
   if (stage.hidden || !list.length) return;
-  const top = stage.getBoundingClientRect().top + 60;
+  const top = stage.getBoundingClientRect().top + barSpace() + 60;
   let n = list[0];
   for (const m of list) { const s = slots.get(m); if (s && s.el.getBoundingClientRect().top <= top) n = m; }
   if (n !== cur) { cur = n; try { localStorage.setItem('last', JSON.stringify([n, true])); } catch (e) {} }
@@ -475,7 +477,7 @@ async function show(n) {
 }
 function scrollToTune(n, smooth) {
   const s = slots.get(n); if (!s) return;
-  stage.scrollTo({ top: s.el.offsetTop - 16, behavior: smooth ? 'smooth' : 'auto' });
+  stage.scrollTo({ top: s.el.offsetTop - barSpace(), behavior: smooth ? 'smooth' : 'auto' });
 }
 async function openStack(n) {
   stage.hidden = false;
