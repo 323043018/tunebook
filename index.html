@@ -46,8 +46,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .app { position: fixed; inset: 0; display: flex; flex-direction: column; }
-/* On the home screen iPadOS can make the page a little shorter than the screen, so size it to the full screen there. */
-.standalone .app { bottom: auto; height: 100vh; height: 100lvh; }
 
 /* Search bar */
 .bar { display: flex; gap: 10px; align-items: center; padding: 10px 16px; position: relative; z-index: 4;
@@ -139,7 +137,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .homemsg:empty { display: none; }
 .homemsg strong, .homemsg span { color: #fff !important; }
 .homemsg .add.on { background: var(--home-fg); color: var(--accent); border-color: var(--home-fg); }
-.part { position: absolute; right: 20px; bottom: 20px; line-height: 1; font-size: 16px; color: var(--home-fg); letter-spacing: .02em; }
+.part { position: absolute; right: 32px; bottom: 32px; line-height: 1; font-size: 16px; color: var(--home-fg); letter-spacing: .02em; }
 .hint { margin: auto; padding: 24px 16px; max-width: 34em; text-align: center; color: var(--muted); font-size: 22px; line-height: 1.5; }
 .hint strong { color: var(--fg); }
 
