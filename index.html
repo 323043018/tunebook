@@ -144,16 +144,16 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
       <button id="clear" type="button" aria-label="Clear search" hidden>×</button>
       <div id="results" class="results" role="listbox" hidden></div>
     </div>
-    <button id="listbtn" class="listbtn" type="button" aria-label="Song list">
-      <span class="lbl">Song list</span><span id="count" class="count">0</span>
+    <button id="listbtn" class="listbtn" type="button" aria-label="Tune list">
+      <span class="lbl">Tune list</span><span id="count" class="count">0</span>
     </button>
   </div>
   <div id="tunebar" class="tunebar" hidden>
     <div id="title" class="title"></div>
     <div id="nav" class="nav" hidden>
-      <button id="prev" type="button" aria-label="Previous in song list">‹</button>
+      <button id="prev" type="button" aria-label="Previous in tune list">‹</button>
       <span id="pos"></span>
-      <button id="next" type="button" aria-label="Next in song list">›</button>
+      <button id="next" type="button" aria-label="Next in tune list">›</button>
     </div>
     <button id="addcur" class="add" type="button"></button>
   </div>
@@ -171,7 +171,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 
 <div id="sheet" class="sheet" hidden>
   <div class="panel" role="dialog" aria-labelledby="sheettitle">
-    <header><h2 id="sheettitle">Song list</h2><button id="closesheet" class="close" type="button">Done</button></header>
+    <header><h2 id="sheettitle">Tune list</h2><button id="closesheet" class="close" type="button">Done</button></header>
     <ul id="items" class="items"></ul>
     <div class="foot"><button id="clearlist" class="danger" type="button">Clear list</button><button id="reload" type="button">Load tune book file again</button></div>
   </div>
@@ -184,7 +184,7 @@ const byNo = new Map(TUNES.map(t => [t[0], t[1]]));
 const $ = id => document.getElementById(id);
 const q = $('q'), results = $('results'), stage = $('stage'), img = $('music');
 
-/* ---------- song list (kept on this iPad) ---------- */
+/* ---------- tune list (kept on this iPad) ---------- */
 let list = [];
 try { list = JSON.parse(localStorage.getItem('songlist') || '[]').filter(n => byNo.has(n)); } catch (e) { list = []; }
 function saveList() { try { localStorage.setItem('songlist', JSON.stringify(list)); } catch (e) {} $('count').textContent = list.length; }
@@ -346,10 +346,10 @@ function fit() {
 }
 addEventListener('resize', fit);
 
-/* ---------- song list sheet ---------- */
+/* ---------- tune list sheet ---------- */
 function renderList() {
   const ul = $('items');
-  if (!list.length) { ul.innerHTML = '<li><div class="empty">Your song list is empty. Search for a tune and tap <b>+ Add</b>.</div></li>'; }
+  if (!list.length) { ul.innerHTML = '<li><div class="empty">Your tune list is empty. Search for a tune and tap <b>+ Add</b>.</div></li>'; }
   else ul.innerHTML = list.map((n, i) =>
     '<li class="' + (n === cur && fromList ? 'cur' : '') + '"><button class="open" type="button" data-n="' + n + '"><span class="num">' + n + '</span><span class="name">' + esc(byNo.get(n)) + '</span></button>' +
     '<button class="mini" type="button" data-up="' + i + '" aria-label="Move up"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
