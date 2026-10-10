@@ -49,7 +49,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 
 /* Search bar */
 .bar { display: flex; gap: 10px; align-items: center; padding: 10px 16px; position: relative; z-index: 4;
-  background: #fff; border-bottom: 1px solid #e6e6e6; }
+  background: #fff; border-bottom: .5px solid #c6c6c8; }
 .search { flex: 1; min-width: 0; position: relative; display: flex; gap: 10px; }
 .pad { position: absolute; left: 0; top: 100%; margin-top: 8px; z-index: 6; display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; width: var(--padw); box-sizing: border-box;
   padding: 8px; border-radius: 16px; background: rgba(206, 210, 217, .72); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
@@ -70,22 +70,23 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 /* Search boxes and Tune list button: white, thin grey borders, grey icon tiles (like a clean card UI) */
 .numbox { flex: none; width: var(--padw); position: relative; }
 .ico { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-  border-radius: 50%; background: #f1f1f1; color: #555; pointer-events: none; }
+  border-radius: 50%; background: #efeff0; color: #3c3c43; pointer-events: none; }
 .ico svg { width: 20px; height: 20px; }
-#q, #qn { width: 100%; box-sizing: border-box; font-family: var(--key-font); font-size: 24px; font-weight: 400; height: 60px;
-  padding: 0 56px 0 62px; border: 1px solid #e3e3e3; border-radius: 30px; background: #fff; color: #1f1f1f;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .04); -webkit-appearance: none; appearance: none; }
-#qn { padding-right: 16px; font-weight: 500; font-variant-numeric: tabular-nums; }
-#q::placeholder { color: #8a8a8a; }
-#qn::placeholder { color: #1f1f1f; font-weight: 500; }
-#q:focus, #qn:focus { outline: none; border-color: #b8b8b8; box-shadow: 0 2px 10px rgba(0, 0, 0, .08); }
+#q, #qn { width: 100%; box-sizing: border-box; font-family: var(--key-font); font-size: 20px; font-weight: 400; letter-spacing: -.01em; height: 60px;
+  padding: 0 56px 0 62px; border: .5px solid #c6c6c8; border-radius: 30px; background: #fff; color: #1f1f1f;
+  box-shadow: none; -webkit-appearance: none; appearance: none; }
+#qn { padding-right: 16px; font-weight: 400; font-variant-numeric: tabular-nums; }
+#q::placeholder { color: #8e8e93; }
+#qn::placeholder { color: #000; font-weight: 400; }
+#q:focus, #qn:focus { outline: none; border-color: #8e8e93; }
 #clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
   width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent;
   font-family: var(--key-font); font-size: 28px; color: #8a8a8a; }
-.listbtn { flex: none; display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 18px; border: 1px solid #e3e3e3; border-radius: 8px;
-  background: #fff; color: #1f1f1f; box-shadow: 0 2px 8px rgba(0, 0, 0, .04); font-family: var(--key-font); font-weight: 400; font-size: 22px; }
+.listbtn { flex: none; position: relative; display: flex; align-items: center; gap: 10px; height: 60px; box-sizing: border-box; padding: 0 16px 0 62px;
+  border: .5px solid #c6c6c8; border-radius: 30px; background: #fff; color: #000; box-shadow: none;
+  font-family: var(--key-font); font-weight: 400; font-size: 20px; letter-spacing: -.01em; }
 .listbtn:active { background: #f1f1f1; }
-.count { font-family: var(--key-font); font-weight: 500; font-size: 18px; min-width: 1.4em; padding: 3px 10px; border-radius: 8px; background: var(--hit);
+.count { font-family: var(--key-font); font-weight: 400; font-size: 17px; min-width: 1.4em; padding: 3px 10px; border-radius: 999px; background: var(--hit);
   color: var(--accent); font-variant-numeric: tabular-nums; text-align: center; }
 
 /* Results dropdown */
@@ -173,7 +174,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   body { font-size: 18px; }
   #q, #qn { font-size: 24px; }
   .search.padopen .results { left: 0; top: calc(100% + 300px); }
-  .listbtn { height: 56px; padding: 0 12px; font-size: 18px; }
+  .listbtn { height: 56px; padding: 0 8px 0 56px; font-size: 18px; }
   .listbtn .lbl { display: none; }
   .row .open { font-size: 20px; }
 }
@@ -187,7 +188,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   <div class="bar">
     <div class="search">
       <div class="numbox">
-      <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 4L7 20M17 4l-2 16M4 9h16M3.5 15h16"/></svg></span>
+      <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 4L7 20M17 4l-2 16M4 9h16M3.5 15h16"/></svg></span>
       <input id="qn" type="text" inputmode="none" readonly autocomplete="off"
         maxlength="3" placeholder="Number" aria-label="Tune number">
       </div>
@@ -198,7 +199,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
         <span></span><button type="button" data-k="0">0</button><button type="button" data-k="back" class="fn" aria-label="Delete">⌫</button>
       </div>
       <div class="namebox">
-      <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></span>
+      <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></span>
       <input id="q" type="text" inputmode="search" enterkeyhint="go" autocomplete="off" autocorrect="off"
         autocapitalize="off" spellcheck="false" placeholder="Tune name" aria-label="Tune name">
       <button id="clear" type="button" aria-label="Clear search" hidden>×</button>
@@ -206,6 +207,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
       <div id="results" class="results" role="listbox" hidden></div>
     </div>
     <button id="listbtn" class="listbtn" type="button" aria-label="Tune list">
+      <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11M3 11h11M3 16h7"/><path d="M18 17.5V5l3 1.5"/><circle cx="16" cy="17.5" r="2"/></svg></span>
       <span class="lbl">Tune list</span><span id="count" class="count">0</span>
     </button>
   </div>
