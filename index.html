@@ -52,14 +52,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .bar { display: flex; gap: 16px; align-items: center; padding: 12px; position: absolute; z-index: 6;
   top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(16px + env(safe-area-inset-left, 0px)); right: calc(16px + env(safe-area-inset-right, 0px));
   background: #fff; border-radius: 42px; box-shadow: 0 8px 30px rgba(0, 0, 0, .22); transition: transform .3s ease, opacity .3s ease; }
-/* While reading, the bar tucks away and a small Search button waits in the top left. */
+/* While reading, the bar tucks away and a small Search button waits at the top centre. */
 .barhidden .bar { transform: translateY(calc(-100% - 24px)); opacity: 0; pointer-events: none; }
-.fab { position: absolute; z-index: 7; top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(16px + env(safe-area-inset-left, 0px));
+.fab { position: absolute; z-index: 7; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%;
   height: 56px; padding: 0 20px 0 8px; border: 0; border-radius: 28px; background: #fff; color: #000; box-shadow: 0 8px 30px rgba(0, 0, 0, .25);
   display: flex; align-items: center; gap: 10px; font-family: var(--key-font); font-size: 19px; font-weight: 400;
-  opacity: 0; transform: translateY(-8px) scale(.96); pointer-events: none; transition: transform .25s ease, opacity .25s ease; }
+  opacity: 0; transform: translate(-50%, -8px) scale(.96); pointer-events: none; transition: transform .25s ease, opacity .25s ease; }
 .fab .ico { position: static; transform: none; }
-.barhidden .fab { opacity: 1; transform: none; pointer-events: auto; }
+.barhidden .fab { opacity: 1; transform: translateX(-50%); pointer-events: auto; }
 @media (prefers-reduced-motion: reduce) { .bar, .fab { transition: none; } }
 .search { flex: 1; min-width: 0; position: relative; display: flex; gap: 16px; }
 .pad { position: absolute; left: 0; top: 100%; margin-top: 12px; z-index: 6; display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; width: var(--padw); box-sizing: border-box;
