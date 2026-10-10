@@ -51,7 +51,16 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 /* Search bar */
 .bar { display: flex; gap: 16px; align-items: center; padding: 12px; position: absolute; z-index: 6;
   top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(16px + env(safe-area-inset-left, 0px)); right: calc(16px + env(safe-area-inset-right, 0px));
-  background: #fff; border-radius: 42px; box-shadow: 0 8px 30px rgba(0, 0, 0, .22); }
+  background: #fff; border-radius: 42px; box-shadow: 0 8px 30px rgba(0, 0, 0, .22); transition: transform .3s ease, opacity .3s ease; }
+/* While reading, the bar tucks away and a small Search button waits in the top left. */
+.barhidden .bar { transform: translateY(calc(-100% - 24px)); opacity: 0; pointer-events: none; }
+.fab { position: absolute; z-index: 7; top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(16px + env(safe-area-inset-left, 0px));
+  height: 56px; padding: 0 20px 0 8px; border: 0; border-radius: 28px; background: #fff; color: #000; box-shadow: 0 8px 30px rgba(0, 0, 0, .25);
+  display: flex; align-items: center; gap: 10px; font-family: var(--key-font); font-size: 19px; font-weight: 400;
+  opacity: 0; transform: translateY(-8px) scale(.96); pointer-events: none; transition: transform .25s ease, opacity .25s ease; }
+.fab .ico { position: static; transform: none; }
+.barhidden .fab { opacity: 1; transform: none; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) { .bar, .fab { transition: none; } }
 .search { flex: 1; min-width: 0; position: relative; display: flex; gap: 16px; }
 .pad { position: absolute; left: 0; top: 100%; margin-top: 12px; z-index: 6; display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; width: var(--padw); box-sizing: border-box;
   padding: 8px; border-radius: 16px; background: rgba(206, 210, 217, .72); -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
@@ -121,7 +130,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .tune { flex: none; background: var(--paper); border-radius: 8px; box-shadow: 0 4px 18px rgba(0, 0, 0, .25); }
 .box { margin: 0 auto; overflow: hidden; border-radius: 0 0 8px 8px; }
 .box img { display: block; width: 100%; height: 100%; max-width: none; filter: var(--music-filter); }
-.tbar { position: sticky; top: calc(var(--barspace) - 4px); z-index: 2; height: 60px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 4px;
+.tbar { position: relative; height: 60px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 4px;
   background: #f2f2f7; color: #000; border-bottom: .5px solid #c6c6c8; border-radius: 8px 8px 0 0; font-family: var(--key-font); }
 .ttl { flex: 1; min-width: 0; font-size: 21px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ttl b { font-family: var(--num-font); color: var(--accent); margin-right: 10px; font-variant-numeric: tabular-nums; }
@@ -147,7 +156,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .homemsg:empty { display: none; }
 .homemsg strong, .homemsg span { color: #fff !important; }
 .homemsg .add.on { background: var(--home-fg); color: var(--accent); border-color: var(--home-fg); }
-.part { position: absolute; right: 44px; bottom: 32px; line-height: 1; font-size: 16px; color: var(--home-fg); letter-spacing: .02em; }
+.part { position: absolute; right: 52px; bottom: 32px; line-height: 1; font-size: 16px; color: var(--home-fg); letter-spacing: .02em; }
 .hint { margin: auto; padding: 24px 16px; max-width: 34em; text-align: center; color: var(--muted); font-size: 22px; line-height: 1.5; }
 .hint strong { color: var(--fg); }
 
@@ -226,6 +235,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
       <span class="lbl">Tune list</span><span id="count" class="count">0</span>
     </button>
   </div>
+  <button id="searchfab" class="fab" type="button" aria-label="Search"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></span>Search</button>
   <div class="main">
     <div class="home" id="hint">
       <h1 class="home-title">THE BAND TUNE BOOK OF<br>THE SALVATION ARMY</h1>
@@ -321,6 +331,7 @@ function warmAll() {}
 function searchFocus() {
   const on = !$('pad').hidden || !results.hidden || document.activeElement === q;
   document.querySelector('.app').classList.toggle('searching', on);
+  if (on) document.querySelector('.app').classList.remove('barhidden');
 }
 document.addEventListener('focusin', () => setTimeout(searchFocus));
 document.addEventListener('focusout', () => setTimeout(searchFocus));
@@ -475,8 +486,19 @@ async function show(n) {
   if (!inList(n)) { list.push(n); saveList(); }
   await openStack(n);
 }
+// Hide the top bar while scrolling down through music; bring it back when scrolling up or near the top.
+const app = document.querySelector('.app');
+let lastTop = 0, quietUntil = 0;
+function showBar() { app.classList.remove('barhidden'); }
+stage.addEventListener('scroll', () => {
+  const t = stage.scrollTop, d = t - lastTop; lastTop = t;
+  if (Date.now() < quietUntil || drag || app.classList.contains('searching')) return;
+  if (t < 40 || d < -8) showBar(); else if (d > 8) app.classList.add('barhidden');
+}, { passive: true });
+$('searchfab').addEventListener('click', () => { showBar(); qn.focus(); openPad(); });
 function scrollToTune(n, smooth) {
   const s = slots.get(n); if (!s) return;
+  quietUntil = Date.now() + (smooth ? 900 : 300);
   stage.scrollTo({ top: s.el.offsetTop - barSpace(), behavior: smooth ? 'smooth' : 'auto' });
 }
 async function openStack(n) {
@@ -502,7 +524,7 @@ function refresh(keep) {
   });
 }
 function goHome(forget) {
-  stage.hidden = true; cur = null;
+  stage.hidden = true; cur = null; showBar();
   if (forget) { try { localStorage.removeItem('last'); } catch (e) {} }
 }
 // Bar buttons: move up, move down, remove (tap ✕ twice).
