@@ -104,6 +104,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 
 /* Tune view */
 .main { flex: 1; min-height: 0; position: relative; }
+/* While searching, the page behind softly blurs so the search stands out. */
+.veil { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; background: rgba(0, 0, 0, .12);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); transition: opacity .3s ease; }
+.searching .veil { opacity: 1; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) { .veil { transition: none; } }
 .stage { position: absolute; inset: 0; display: block;
   background: transparent; overflow: auto; -webkit-overflow-scrolling: touch; }
 .stack { display: flex; flex-direction: column; }
@@ -209,6 +214,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
     <div id="stack" class="stack"></div>
     <input id="file" type="file" hidden>
     </div>
+    <div class="veil"></div>
   </div>
 </div>
 
@@ -283,6 +289,13 @@ async function sizeFor(n) { const v = (await PDF.getPage(n)).getViewport({ scale
 function warmAll() {}
 
 /* ---------- search ---------- */
+// Blur the page behind while the number pad, the results, or a search box is in use.
+function searchFocus() {
+  const on = !$('pad').hidden || !results.hidden || document.activeElement === q;
+  document.querySelector('.app').classList.toggle('searching', on);
+}
+document.addEventListener('focusin', () => setTimeout(searchFocus));
+document.addEventListener('focusout', () => setTimeout(searchFocus));
 const norm = s => s.toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const idx = TUNES.map(([n, name]) => ({ n, name, key: norm(name) }));
 let hits = [], sel = 0;
@@ -325,6 +338,8 @@ function renderResults() {
 // Two boxes: the number box opens the app's own number pad (iPad has no number-only keyboard), the name box the full keyboard.
 let active = qn;
 const pad = $('pad'), searchBox = document.querySelector('.search');
+new MutationObserver(searchFocus).observe(pad, { attributes: true, attributeFilter: ['hidden'] });
+new MutationObserver(searchFocus).observe(results, { attributes: true, attributeFilter: ['hidden'] });
 function openPad() { pad.hidden = false; searchBox.classList.add('padopen'); }
 function closePad() { pad.hidden = true; searchBox.classList.remove('padopen'); }
 function key(k) {
