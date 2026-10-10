@@ -69,10 +69,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .namebox { flex: 1; min-width: 0; position: relative; }
 /* Search boxes and Tune list button: white, thin grey borders, grey icon tiles (like a clean card UI) */
 .numbox { flex: none; width: var(--padw); position: relative; }
-.ico { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
-  border-radius: 8px; background: #f1f1f1; color: #555; pointer-events: none; }
+.ico { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: #f1f1f1; color: #555; pointer-events: none; }
+.ico svg { width: 20px; height: 20px; }
 #q, #qn { width: 100%; box-sizing: border-box; font-family: var(--key-font); font-size: 24px; font-weight: 400; height: 60px;
-  padding: 0 56px 0 62px; border: 1px solid #e3e3e3; border-radius: 8px; background: #fff; color: #1f1f1f;
+  padding: 0 56px 0 62px; border: 1px solid #e3e3e3; border-radius: 30px; background: #fff; color: #1f1f1f;
   box-shadow: 0 2px 8px rgba(0, 0, 0, .04); -webkit-appearance: none; appearance: none; }
 #qn { padding-right: 16px; font-weight: 500; font-variant-numeric: tabular-nums; }
 #q::placeholder { color: #8a8a8a; }
